@@ -13,7 +13,6 @@ export default function NuevoMiembro() {
 
   const [planes, setPlanes]           = useState([])
   const [planSel, setPlanSel]         = useState(null)
-  const [busquedaDni, setBusquedaDni] = useState('')
   const [buscandoDni, setBuscandoDni] = useState(false)
   const [guardando, setGuardando]     = useState(false)
   const [exito, setExito]             = useState(false)
@@ -298,7 +297,7 @@ export default function NuevoMiembro() {
                   <input
                     type="text"
                     className="input bg-gray-800 cursor-not-allowed"
-                    value={fechaFin ? new Date(fechaFin).toLocaleDateString('es-PE') : '—'}
+                    value={fechaFin ? new Date(fechaFin + 'T12:00:00').toLocaleDateString('es-PE') : '—'}
                     readOnly
                   />
                 </div>
@@ -365,8 +364,8 @@ export default function NuevoMiembro() {
             <Fila label="Huella" valor={form.huella_id || 'No registrada'} />
             <div className="w-full h-px bg-gym-border my-1" />
             <Fila label="Plan"     valor={planSel?.nombre} />
-            <Fila label="Inicio"   valor={new Date(form.fecha_inicio).toLocaleDateString('es-PE')} />
-            <Fila label="Fin"      valor={new Date(fechaFin).toLocaleDateString('es-PE')} />
+            <Fila label="Inicio"   valor={new Date(form.fecha_inicio + 'T12:00:00').toLocaleDateString('es-PE')} />
+            <Fila label="Fin"      valor={new Date(fechaFin + 'T12:00:00').toLocaleDateString('es-PE')} />
             <Fila label="Monto"    valor={`S/ ${planSel?.precio}`} />
             <Fila label="Pago"     valor={form.metodo_pago} />
             {form.comprobante && <Fila label="Comprobante" valor={form.comprobante} />}

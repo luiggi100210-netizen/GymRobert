@@ -33,9 +33,10 @@ async function listarMiembros(req, res, next) {
     const params = [];
     let idx = 1;
 
-    if (estado) {
-      query += ` AND m.estado = $${idx++}`;
-      params.push(estado);
+    if (estado === 'activo') {
+      query += ` AND mem.estado = 'activa' AND mem.fecha_fin >= CURRENT_DATE`;
+    } else if (estado === 'vencido') {
+      query += ` AND (mem.estado IS DISTINCT FROM 'activa' OR mem.fecha_fin < CURRENT_DATE OR mem.id IS NULL)`;
     }
 
     if (plan_id) {
@@ -160,14 +161,11 @@ async function crearMiembro(req, res, next) {
     }
     const plan = planRows[0];
 
-    // Calcular fecha fin
-    const fechaFin = `(DATE '${fecha_inicio}' + INTERVAL '${plan.duracion_dias} days')::DATE`;
-
-    // Crear membresía
+    // Crear membresía (fecha_fin calculada con parámetros — sin interpolación SQL)
     const { rows: membresiaRows } = await client.query(
       `INSERT INTO membresias (miembro_id, plan_id, fecha_inicio, fecha_fin)
-       VALUES ($1, $2, $3, ${fechaFin}) RETURNING *`,
-      [miembro.id, plan_id, fecha_inicio]
+       VALUES ($1, $2, $3, ($3::DATE + $4 * INTERVAL '1 day')::DATE) RETURNING *`,
+      [miembro.id, plan_id, fecha_inicio, plan.duracion_dias]
     );
     const membresia = membresiaRows[0];
 

@@ -5,6 +5,7 @@
 import HuellaIcon from './HuellaIcon'
 import MiembroCard from './MiembroCard'
 import Countdown from './Countdown'
+import { RESET_S } from '../constants/resetTimes'
 
 export default function PantallaDenegado({ respuesta }) {
   const esHuellaNoRegistrada = respuesta.motivo === 'huella_no_registrada'
@@ -52,7 +53,7 @@ export default function PantallaDenegado({ respuesta }) {
       )}
 
       {/* Countdown de auto-reset */}
-      <Countdown segundos={5} color="#ef4444" />
+      <Countdown segundos={RESET_S.denegado} color="#ef4444" />
     </div>
   )
 }

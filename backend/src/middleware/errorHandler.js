@@ -1,6 +1,6 @@
 // Manejador global de errores
 function errorHandler(err, req, res, next) {
-  console.error('Error:', err.message);
+  console.error('Error:', err.message, err.stack);
 
   // Error de PostgreSQL: violación de restricción única
   if (err.code === '23505') {
@@ -13,7 +13,11 @@ function errorHandler(err, req, res, next) {
   }
 
   const status = err.status || 500;
-  const mensaje = err.message || 'Error interno del servidor';
+
+  // En errores 5xx no exponer detalles internos al cliente
+  const mensaje = status >= 500
+    ? 'Error interno del servidor'
+    : (err.message || 'Error del servidor');
 
   res.status(status).json({ error: mensaje });
 }

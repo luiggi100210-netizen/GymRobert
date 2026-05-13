@@ -20,6 +20,7 @@ async function renovarMembresia(req, res, next) {
       [miembro_id]
     );
     if (miembroRows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Miembro no encontrado' });
     }
 
@@ -29,6 +30,7 @@ async function renovarMembresia(req, res, next) {
       [plan_id]
     );
     if (planRows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Plan no encontrado o inactivo' });
     }
     const plan = planRows[0];
@@ -40,12 +42,11 @@ async function renovarMembresia(req, res, next) {
       [miembro_id]
     );
 
-    // Crear nueva membresía
-    const fechaFin = `(DATE '${fecha_inicio}' + INTERVAL '${plan.duracion_dias} days')::DATE`;
+    // Crear nueva membresía (fecha_fin calculada con parámetros — sin interpolación SQL)
     const { rows: membresiaRows } = await client.query(
       `INSERT INTO membresias (miembro_id, plan_id, fecha_inicio, fecha_fin)
-       VALUES ($1, $2, $3, ${fechaFin}) RETURNING *`,
-      [miembro_id, plan_id, fecha_inicio]
+       VALUES ($1, $2, $3, ($3::DATE + $4 * INTERVAL '1 day')::DATE) RETURNING *`,
+      [miembro_id, plan_id, fecha_inicio, plan.duracion_dias]
     );
     const membresia = membresiaRows[0];
 

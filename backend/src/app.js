@@ -1,8 +1,9 @@
 // Configuración de la aplicación Express
 require('dotenv').config();
 
-const express       = require('express');
-const cors          = require('cors');
+const express   = require('express');
+const cors      = require('cors');
+const rateLimit = require('express-rate-limit');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Rutas
@@ -16,9 +17,25 @@ const reportesRoutes   = require('./routes/reportes.routes');
 
 const app = express();
 
-// Middlewares globales
-app.use(cors());
+// Necesario para que express-rate-limit identifique IPs correctamente detrás de proxy/Docker
+app.set('trust proxy', 1);
+
+// CORS — restringir origen en producción con CORS_ORIGIN env var
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Rate limiting para autenticación — máx 20 intentos cada 15 minutos
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: 'Demasiados intentos de acceso. Intente en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Ruta raíz para verificar que el servidor está activo
 app.get('/', (req, res) => {
@@ -31,7 +48,7 @@ app.get('/', (req, res) => {
 });
 
 // Registro de rutas API
-app.use('/api/auth',        authRoutes);
+app.use('/api/auth',        authLimiter, authRoutes);
 app.use('/api/miembros',    miembrosRoutes);
 app.use('/api/membresias',  membresiaRoutes);
 app.use('/api/planes',      planesRoutes);

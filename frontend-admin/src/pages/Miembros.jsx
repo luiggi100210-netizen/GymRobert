@@ -1,13 +1,88 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
+import { linkWhatsapp } from '../utils/whatsapp'
 
 function estadoMiembro(diasRestantes, estadoMem) {
   if (!estadoMem || estadoMem === 'vencida') return 'vencido'
   if (diasRestantes <= 7) return 'por vencer'
   return 'activo'
+}
+
+
+// Celda de teléfono editable inline con botón WhatsApp
+function CeldaTelefono({ miembro, onActualizar }) {
+  const [editando, setEditando] = useState(false)
+  const [tel, setTel]           = useState(miembro.telefono || '')
+  const [guardando, setGuardando] = useState(false)
+
+  // Sincronizar tel cuando el prop cambia (tras re-fetch del padre)
+  useEffect(() => {
+    setTel(miembro.telefono || '')
+  }, [miembro.telefono])
+
+  const waLink = linkWhatsapp(tel, miembro.nombres, miembro.dias_restantes, miembro.plan_nombre)
+
+  const guardar = async () => {
+    if (tel === (miembro.telefono || '')) { setEditando(false); return }
+    setGuardando(true)
+    try {
+      await api.put(`/miembros/${miembro.id}`, { telefono: tel || null })
+      onActualizar()
+    } finally {
+      setGuardando(false)
+      setEditando(false)
+    }
+  }
+
+  if (editando) {
+    return (
+      <div className="flex items-center gap-1">
+        <input
+          type="text"
+          className="w-28 bg-gray-900 border border-gym-red rounded px-2 py-1 text-xs text-white focus:outline-none"
+          value={tel}
+          maxLength={9}
+          onChange={(e) => setTel(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') guardar(); if (e.key === 'Escape') setEditando(false) }}
+          autoFocus
+        />
+        <button onClick={guardar} disabled={guardando} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold px-1">
+          {guardando ? '...' : '✓'}
+        </button>
+        <button onClick={() => setEditando(false)} className="text-xs text-gray-600 hover:text-gray-400 px-1">✕</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => setEditando(true)}
+        title="Click para editar"
+        className="text-xs text-gray-400 hover:text-white transition-colors group flex items-center gap-1"
+      >
+        {tel
+          ? <span className="font-mono">{tel}</span>
+          : <span className="text-gray-700 italic">+ agregar</span>
+        }
+        <span className="opacity-0 group-hover:opacity-100 text-gray-600 text-[10px]">✏️</span>
+      </button>
+      {waLink && (
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noreferrer"
+          title="Enviar WhatsApp"
+          className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/30 border border-emerald-800/50 text-emerald-500 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-colors font-bold"
+        >
+          WA
+        </a>
+      )}
+    </div>
+  )
 }
 
 export default function Miembros() {
@@ -48,9 +123,12 @@ export default function Miembros() {
           <h1 className="text-2xl font-bold text-white">Miembros</h1>
           <p className="text-sm text-gray-500 mt-0.5">{miembros.length} miembros encontrados</p>
         </div>
-        <Link to="/miembros/nuevo" className="btn-primary text-sm">
+        <button
+          onClick={() => navigate('/miembros/nuevo')}
+          className="btn-primary text-sm"
+        >
           + Nuevo miembro
-        </Link>
+        </button>
       </div>
 
       {/* Filtros */}
@@ -98,6 +176,7 @@ export default function Miembros() {
               <thead>
                 <tr className="text-xs text-gray-500 border-b border-gym-border bg-black/20">
                   <th className="text-left px-5 py-3 font-medium">Miembro</th>
+                  <th className="text-left px-4 py-3 font-medium">Celular</th>
                   <th className="text-left px-4 py-3 font-medium">Plan</th>
                   <th className="text-left px-4 py-3 font-medium">Vencimiento</th>
                   <th className="text-left px-4 py-3 font-medium">Días</th>
@@ -113,6 +192,9 @@ export default function Miembros() {
                       <td className="px-5 py-3">
                         <p className="font-semibold text-gray-200">{m.nombres} {m.apellidos}</p>
                         <p className="text-xs text-gray-600">DNI: {m.dni}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <CeldaTelefono miembro={m} onActualizar={cargar} />
                       </td>
                       <td className="px-4 py-3 text-gray-400 text-xs">{m.plan_nombre || '—'}</td>
                       <td className="px-4 py-3 text-gray-400 text-xs">

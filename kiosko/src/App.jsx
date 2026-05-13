@@ -10,20 +10,13 @@
 import { useState, useCallback, useRef } from 'react'
 import { registrarToque } from './api/asistencia'
 import { useSensor }       from './hooks/useSensor'
+import { RESET_MS }        from './constants/resetTimes'
 import BarraLateral        from './components/BarraLateral'
 import PantallaIdle        from './components/PantallaIdle'
 import PantallaScanning    from './components/PantallaScanning'
 import PantallaEntrada     from './components/PantallaEntrada'
 import PantallaSalida      from './components/PantallaSalida'
 import PantallaDenegado    from './components/PantallaDenegado'
-
-// Duración del estado de resultado antes de volver a IDLE (ms)
-const RESET_MS = {
-  entrada:  4000,
-  salida:   4000,
-  denegado: 5000,
-  ignorado: 800,   // transición silenciosa
-}
 
 export default function App() {
   const [estado, setEstado]       = useState('idle')   // 'idle' | 'scan' | 'entrada' | 'salida' | 'denegado' | 'ignorado'
@@ -77,7 +70,7 @@ export default function App() {
   }, [estado, programarReset])
 
   // Conectar sensor biométrico (demo con teclado por defecto)
-  useSensor({ onToque: handleToque, habilitado: estado === 'idle' })
+  useSensor({ onToque: handleToque })
 
   return (
     <div className="flex h-screen w-screen bg-kiosko-bg overflow-hidden">

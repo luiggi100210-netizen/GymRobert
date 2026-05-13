@@ -57,7 +57,7 @@ export default function Pagos() {
             value={anio}
             onChange={(e) => setAnio(Number(e.target.value))}
           >
-            {[2024, 2025, 2026].map((a) => (
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((a) => (
               <option key={a} value={a}>{a}</option>
             ))}
           </select>

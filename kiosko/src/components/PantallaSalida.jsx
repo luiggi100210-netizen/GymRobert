@@ -5,6 +5,7 @@
 import HuellaIcon from './HuellaIcon'
 import MiembroCard from './MiembroCard'
 import Countdown from './Countdown'
+import { RESET_S } from '../constants/resetTimes'
 
 export default function PantallaSalida({ respuesta }) {
   const nombre = respuesta.miembro?.nombre_completo
@@ -41,7 +42,7 @@ export default function PantallaSalida({ respuesta }) {
       />
 
       {/* Countdown de auto-reset */}
-      <Countdown segundos={4} color="#3b82f6" />
+      <Countdown segundos={RESET_S.salida} color="#3b82f6" />
     </div>
   )
 }
