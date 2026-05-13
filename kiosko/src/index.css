@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full m-0 p-0 bg-kiosko-bg font-sans antialiased;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  /* Barra lateral de color con glow animado */
+  .sidebar-idle    { @apply bg-gray-800; }
+  .sidebar-entrada { @apply bg-emerald-500 animate-glow_green; }
+  .sidebar-salida  { @apply bg-blue-500   animate-glow_blue; }
+  .sidebar-denegado{ @apply bg-red-600    animate-glow_red; }
+  .sidebar-scan    { @apply bg-amber-500; }
+
+  /* Contador circular SVG */
+  .countdown-ring {
+    stroke-dasharray: 220;
+    stroke-dashoffset: 0;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+}

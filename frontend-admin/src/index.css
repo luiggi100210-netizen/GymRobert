@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 font-sans antialiased;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a transparent;
+  }
+
+  *::-webkit-scrollbar { width: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gym-red hover:bg-gym-red-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply bg-transparent hover:bg-white/5 text-gray-300 hover:text-white font-medium px-4 py-2 rounded-lg transition-colors duration-150 border border-gym-border;
+  }
+  .card {
+    @apply bg-gym-card border border-gym-border rounded-xl p-5;
+  }
+  .input {
+    @apply w-full bg-gray-900 border border-gym-border text-gray-100 rounded-lg px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:border-gym-red focus:ring-1 focus:ring-gym-red transition-colors;
+  }
+  .label {
+    @apply block text-xs font-medium text-gray-400 mb-1;
+  }
+  .table-row {
+    @apply border-b border-gym-border hover:bg-white/5 transition-colors;
+  }
+  .badge-verde    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/50 text-emerald-300 border border-emerald-800; }
+  .badge-rojo     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800; }
+  .badge-amarillo { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-900/50 text-amber-300 border border-amber-800; }
+  .badge-gris     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700; }
+  .badge-azul     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300 border border-blue-800; }
+}
