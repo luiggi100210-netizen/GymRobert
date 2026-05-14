@@ -79,7 +79,7 @@ export default function App() {
 
       {/* Contenido principal */}
       <div className="flex-1 relative overflow-hidden">
-        {estado === 'idle'     && <PantallaIdle />}
+        {estado === 'idle'     && <PantallaIdle onClickSensor={() => handleToque('FP-DEMO-001')} />}
         {estado === 'scan'     && <PantallaScanning />}
         {estado === 'entrada'  && respuesta && <PantallaEntrada  respuesta={respuesta} />}
         {estado === 'salida'   && respuesta && <PantallaSalida   respuesta={respuesta} />}

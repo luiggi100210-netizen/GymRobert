@@ -129,7 +129,8 @@ async function registrarToque(req, res, next) {
       membresia: {
         plan_nombre:    membresia.plan_nombre,
         fecha_fin:      membresia.fecha_fin,
-        dias_restantes: membresia.dias_restantes
+        dias_restantes: membresia.dias_restantes,
+        duracion_dias:  membresia.duracion_dias
       },
       asistencia: {
         fecha:            asistencia.fecha,
