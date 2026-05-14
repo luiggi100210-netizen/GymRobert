@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const [form, setForm] = useState({ username: '', password: '' })
+  const [form, setForm]   = useState({ username: '', password: '' })
   const [error, setError] = useState('')
   const { login, cargando } = useAuth()
   const navigate = useNavigate()
@@ -20,29 +20,41 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      {/* Fondo decorativo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gym-red/5 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen flex bg-[#1a1a1a]">
 
-      <div className="w-full max-w-sm relative">
+      {/* ── Panel izquierdo: formulario ── */}
+      <div className="relative z-10 flex flex-col justify-center w-full max-w-[420px] min-h-screen bg-[#1c1c1c] px-12 py-16 shrink-0">
+
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gym-red rounded-2xl text-2xl font-black text-white mb-4 shadow-lg shadow-gym-red/30">
-            R
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-2">
+            <svg viewBox="0 0 64 32" className="w-10 h-5 text-red-600" fill="currentColor">
+              <rect x="16" y="13" width="32" height="6" rx="3" />
+              <rect x="2"  y="8"  width="7"  height="16" rx="3.5" />
+              <rect x="9"  y="11" width="7"  height="10" rx="3" />
+              <rect x="48" y="11" width="7"  height="10" rx="3" />
+              <rect x="55" y="8"  width="7"  height="16" rx="3.5" />
+            </svg>
+            <span className="text-xl font-black text-white tracking-wider">ROBERT GYM</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">ROBERT GYM</h1>
-          <p className="text-sm text-gray-500 mt-1">Club Fitness — Panel Admin</p>
+          <p className="text-[11px] text-red-600/70 uppercase tracking-[4px] ml-[52px]">Club Fitness</p>
+        </div>
+
+        {/* Título */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white">Bienvenido</h2>
+          <p className="text-sm text-gray-500 mt-1">Ingresa tus credenciales para continuar</p>
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="card space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="label">Usuario</label>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
+              Usuario
+            </label>
             <input
               type="text"
-              className="input"
+              className="w-full bg-transparent border-b border-gray-700 focus:border-red-600 text-white placeholder-gray-600 py-2 text-sm outline-none transition-colors"
               placeholder="admin"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
@@ -52,10 +64,12 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="label">Contraseña</label>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
+              Contraseña
+            </label>
             <input
               type="password"
-              className="input"
+              className="w-full bg-transparent border-b border-gray-700 focus:border-red-600 text-white placeholder-gray-600 py-2 text-sm outline-none transition-colors"
               placeholder="••••••••"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -64,7 +78,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+            <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded px-3 py-2">
               {error}
             </p>
           )}
@@ -72,16 +86,28 @@ export default function Login() {
           <button
             type="submit"
             disabled={cargando}
-            className="btn-primary w-full py-2.5 text-sm"
+            className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-50 text-white font-bold py-3 text-sm tracking-widest uppercase transition-colors mt-2"
           >
             {cargando ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-700 mt-6">
+        <p className="text-xs text-gray-700 mt-12">
           Arequipa, Perú · Robert Gym © 2026
         </p>
       </div>
+
+      {/* ── Panel derecho: imagen del atleta ── */}
+      <div className="flex-1 relative overflow-hidden">
+        <img
+          src="/gym-hero.jpg"
+          alt="Robert Gym"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        {/* degradado de fusión con el panel izquierdo */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1c1c1c] via-[#1c1c1c]/20 to-transparent" />
+      </div>
+
     </div>
   )
 }
