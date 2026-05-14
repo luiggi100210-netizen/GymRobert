@@ -27,17 +27,11 @@ export default function Login() {
 
         {/* Logo */}
         <div className="mb-12">
-          <div className="flex items-center gap-3 mb-2">
-            <svg viewBox="0 0 64 32" className="w-10 h-5 text-red-600" fill="currentColor">
-              <rect x="16" y="13" width="32" height="6" rx="3" />
-              <rect x="2"  y="8"  width="7"  height="16" rx="3.5" />
-              <rect x="9"  y="11" width="7"  height="10" rx="3" />
-              <rect x="48" y="11" width="7"  height="10" rx="3" />
-              <rect x="55" y="8"  width="7"  height="16" rx="3.5" />
-            </svg>
-            <span className="text-xl font-black text-white tracking-wider">ROBERT GYM</span>
-          </div>
-          <p className="text-[11px] text-red-600/70 uppercase tracking-[4px] ml-[52px]">Club Fitness</p>
+          <img
+            src="/robert-gym-logo.png"
+            alt="Robert Gym"
+            className="w-[180px] h-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)]"
+          />
         </div>
 
         {/* Título */}
