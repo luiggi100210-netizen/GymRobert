@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { format, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
@@ -20,6 +20,171 @@ function duracion(minutos) {
 function hora(ts) {
   if (!ts) return '—'
   return new Date(ts).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+}
+
+function ModalRegistroManual({ onCerrar, onRegistrado }) {
+  const [buscar, setBuscar]       = useState('')
+  const [miembros, setMiembros]   = useState([])
+  const [buscando, setBuscando]   = useState(false)
+  const [seleccionado, setSeleccionado] = useState(null)
+  const [guardando, setGuardando] = useState(false)
+  const [resultado, setResultado] = useState(null) // { estado, mensaje }
+  const [error, setError]         = useState('')
+  const timerRef                  = useRef(null)
+
+  const buscarMiembros = useCallback((q) => {
+    if (!q.trim()) { setMiembros([]); return }
+    setBuscando(true)
+    api.get('/miembros', { params: { buscar: q } })
+      .then(({ data }) => setMiembros(data.slice(0, 6)))
+      .finally(() => setBuscando(false))
+  }, [])
+
+  const handleBuscar = (e) => {
+    const q = e.target.value
+    setBuscar(q)
+    setSeleccionado(null)
+    setResultado(null)
+    setError('')
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => buscarMiembros(q), 300)
+  }
+
+  const handleSeleccionar = (m) => {
+    setSeleccionado(m)
+    setBuscar(`${m.nombres} ${m.apellidos}`)
+    setMiembros([])
+    setResultado(null)
+    setError('')
+  }
+
+  const handleRegistrar = async () => {
+    if (!seleccionado) return
+    setGuardando(true)
+    setError('')
+    try {
+      const { data } = await api.post('/asistencia/manual', { miembro_id: seleccionado.id })
+      setResultado(data)
+      onRegistrado()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al registrar asistencia')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const estadoActual = seleccionado
+    ? seleccionado.membresia_estado !== 'activa'
+      ? 'sin membresía'
+      : null
+    : null
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="card w-full max-w-md space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white">Registro manual de asistencia</h2>
+          <button onClick={onCerrar} className="text-gray-600 hover:text-gray-300">✕</button>
+        </div>
+
+        {/* Búsqueda */}
+        <div className="relative">
+          <label className="label">Buscar miembro</label>
+          <input
+            type="text"
+            className="input"
+            placeholder="Nombre, apellido o DNI..."
+            value={buscar}
+            onChange={handleBuscar}
+            autoFocus
+          />
+          {buscando && (
+            <p className="text-xs text-gray-500 mt-1">Buscando...</p>
+          )}
+          {miembros.length > 0 && (
+            <ul className="absolute z-10 w-full mt-1 bg-gym-card border border-gym-border rounded-xl overflow-hidden shadow-xl">
+              {miembros.map((m) => (
+                <li key={m.id}>
+                  <button
+                    onClick={() => handleSeleccionar(m)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-white/5 transition-colors flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <p className="text-sm text-gray-200 font-medium">{m.nombres} {m.apellidos}</p>
+                      <p className="text-xs text-gray-600">DNI: {m.dni}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${
+                      m.membresia_estado === 'activa'
+                        ? 'bg-emerald-900/30 border-emerald-800/50 text-emerald-400'
+                        : 'bg-red-900/30 border-red-800/50 text-red-400'
+                    }`}>
+                      {m.membresia_estado === 'activa' ? 'activo' : 'vencido'}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Info del seleccionado */}
+        {seleccionado && !resultado && (
+          <div className="bg-gray-900/60 border border-gym-border rounded-xl px-4 py-3 space-y-1">
+            <p className="text-sm font-semibold text-white">
+              {seleccionado.nombres} {seleccionado.apellidos}
+            </p>
+            <div className="flex gap-4 text-xs text-gray-500">
+              <span>DNI: {seleccionado.dni}</span>
+              <span>Plan: {seleccionado.plan_nombre || '—'}</span>
+            </div>
+            {estadoActual && (
+              <p className="text-xs text-red-400 mt-1">Sin membresía activa — no se puede registrar</p>
+            )}
+          </div>
+        )}
+
+        {/* Resultado exitoso */}
+        {resultado && (
+          <div className={`rounded-xl px-4 py-4 text-center border ${
+            resultado.estado === 'entrada'
+              ? 'bg-blue-900/20 border-blue-800/40'
+              : 'bg-emerald-900/20 border-emerald-800/40'
+          }`}>
+            <p className="text-3xl mb-2">{resultado.estado === 'entrada' ? '🟢' : '🔴'}</p>
+            <p className={`text-lg font-bold capitalize ${
+              resultado.estado === 'entrada' ? 'text-blue-300' : 'text-emerald-300'
+            }`}>
+              {resultado.estado} registrada
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {resultado.miembro.nombre_completo}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+
+        <div className="flex gap-3 pt-1">
+          <button onClick={onCerrar} className="btn-ghost flex-1">
+            {resultado ? 'Cerrar' : 'Cancelar'}
+          </button>
+          {!resultado && (
+            <button
+              onClick={handleRegistrar}
+              disabled={guardando || !seleccionado || !!estadoActual}
+              className="btn-primary flex-1"
+            >
+              {guardando ? 'Registrando...' : 'Registrar'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function Asistencia() {
@@ -58,8 +223,9 @@ export default function Asistencia() {
 
 // Pestaña: Asistencias de hoy (actualización automática cada 30s)
 function TabHoy() {
-  const [lista, setLista]     = useState([])
-  const [cargando, setCargando] = useState(true)
+  const [lista, setLista]         = useState([])
+  const [cargando, setCargando]   = useState(true)
+  const [modalManual, setModalManual] = useState(false)
 
   const cargar = useCallback(() => {
     api.get('/asistencia/hoy')
@@ -73,25 +239,33 @@ function TabHoy() {
     return () => clearInterval(interval)
   }, [cargar])
 
-  const enGym     = lista.filter((a) => !a.salida).length
-  const salieron  = lista.filter((a) => a.salida).length
+  const enGym    = lista.filter((a) => !a.salida).length
+  const salieron = lista.filter((a) => a.salida).length
 
   return (
     <div className="space-y-4">
-      {/* Mini stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-white">{lista.length}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Total hoy</p>
+      {/* Stats + botón */}
+      <div className="flex items-start gap-4">
+        <div className="grid grid-cols-3 gap-3 flex-1">
+          <div className="card text-center">
+            <p className="text-2xl font-bold text-white">{lista.length}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Total hoy</p>
+          </div>
+          <div className="card text-center">
+            <p className="text-2xl font-bold text-blue-400">{enGym}</p>
+            <p className="text-xs text-gray-500 mt-0.5">En el gym</p>
+          </div>
+          <div className="card text-center">
+            <p className="text-2xl font-bold text-emerald-400">{salieron}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Completados</p>
+          </div>
         </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-blue-400">{enGym}</p>
-          <p className="text-xs text-gray-500 mt-0.5">En el gym</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-emerald-400">{salieron}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Completados</p>
-        </div>
+        <button
+          onClick={() => setModalManual(true)}
+          className="btn-primary text-sm shrink-0 mt-1"
+        >
+          + Registrar manual
+        </button>
       </div>
 
       <div className="card p-0 overflow-hidden">
@@ -129,6 +303,13 @@ function TabHoy() {
           </table>
         )}
       </div>
+
+      {modalManual && (
+        <ModalRegistroManual
+          onCerrar={() => setModalManual(false)}
+          onRegistrado={cargar}
+        />
+      )}
     </div>
   )
 }

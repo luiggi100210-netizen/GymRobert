@@ -277,6 +277,108 @@ async function reporteMensual(req, res, next) {
   }
 }
 
+// POST /api/asistencia/manual
+// Registro manual de entrada/salida desde el panel admin (requiere auth)
+async function registrarManual(req, res, next) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { miembro_id } = req.body;
+
+    if (!miembro_id) {
+      return res.status(400).json({ error: 'miembro_id es requerido' });
+    }
+
+    // Verificar que el miembro exista
+    const { rows: miembroRows } = await client.query(
+      `SELECT id, nombres, apellidos, dni, estado
+       FROM miembros WHERE id = $1`,
+      [miembro_id]
+    );
+
+    if (miembroRows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    const miembro = miembroRows[0];
+
+    // Verificar membresía activa
+    const { rows: membresiaRows } = await client.query(
+      `SELECT mem.*, p.nombre AS plan_nombre
+       FROM membresias mem
+       JOIN planes p ON mem.plan_id = p.id
+       WHERE mem.miembro_id = $1
+         AND mem.estado = 'activa'
+         AND mem.fecha_fin >= CURRENT_DATE
+       ORDER BY mem.fecha_fin DESC
+       LIMIT 1`,
+      [miembro.id]
+    );
+
+    if (membresiaRows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'El miembro no tiene membresía activa' });
+    }
+
+    // Buscar registro de asistencia de hoy
+    const { rows: asistenciaRows } = await client.query(
+      `SELECT * FROM asistencias
+       WHERE miembro_id = $1 AND fecha = CURRENT_DATE`,
+      [miembro.id]
+    );
+
+    let asistencia;
+    let estadoRespuesta;
+
+    if (asistenciaRows.length === 0) {
+      // Registrar entrada
+      const { rows } = await client.query(
+        `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
+         VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
+         RETURNING *`,
+        [miembro.id]
+      );
+      asistencia = rows[0];
+      estadoRespuesta = 'entrada';
+    } else {
+      const registro = asistenciaRows[0];
+
+      if (registro.salida === null) {
+        // Registrar salida
+        const { rows } = await client.query(
+          `UPDATE asistencias
+           SET salida = NOW() AT TIME ZONE 'America/Lima',
+               duracion_minutos = ROUND(
+                 EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
+               )
+           WHERE id = $1 RETURNING *`,
+          [registro.id]
+        );
+        asistencia = rows[0];
+        estadoRespuesta = 'salida';
+      } else {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'El miembro ya completó su visita del día' });
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      estado: estadoRespuesta,
+      miembro: formatearMiembro(miembro),
+      asistencia
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+
 // Función auxiliar: formatear datos del miembro para el kiosco
 function formatearMiembro(miembro) {
   return {
@@ -288,4 +390,4 @@ function formatearMiembro(miembro) {
   };
 }
 
-module.exports = { registrarToque, asistenciasHoy, asistenciasDia, reporteMensual };
+module.exports = { registrarToque, registrarManual, asistenciasHoy, asistenciasDia, reporteMensual };
