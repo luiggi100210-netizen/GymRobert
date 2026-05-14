@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import api from '../api/client'
 
 const NAV = [
   { to: '/',           label: 'Dashboard',   icon: '⊞',  exact: true },
@@ -10,9 +12,93 @@ const NAV = [
   { to: '/planes',     label: 'Planes',      icon: '🏷️' },
 ]
 
+function ModalCambiarPassword({ onCerrar }) {
+  const [form, setForm]       = useState({ actual: '', nueva: '', confirmar: '' })
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError]     = useState('')
+  const [exito, setExito]     = useState(false)
+
+  const handleGuardar = async () => {
+    setError('')
+    if (form.nueva !== form.confirmar) {
+      setError('Las contraseñas nuevas no coinciden')
+      return
+    }
+    if (form.nueva.length < 6) {
+      setError('La nueva contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    setGuardando(true)
+    try {
+      await api.post('/auth/cambiar-password', {
+        password_actual: form.actual,
+        password_nuevo:  form.nueva,
+      })
+      setExito(true)
+      setTimeout(onCerrar, 2000)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al cambiar contraseña')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="card w-full max-w-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white">Cambiar contraseña</h2>
+          <button onClick={onCerrar} className="text-gray-600 hover:text-gray-300">✕</button>
+        </div>
+
+        {exito ? (
+          <div className="text-center py-4">
+            <p className="text-2xl mb-2">✓</p>
+            <p className="text-emerald-400 font-medium">Contraseña actualizada</p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <label className="label">Contraseña actual</label>
+              <input type="password" className="input" value={form.actual}
+                onChange={(e) => setForm({ ...form, actual: e.target.value })} autoFocus />
+            </div>
+            <div>
+              <label className="label">Nueva contraseña</label>
+              <input type="password" className="input" value={form.nueva}
+                onChange={(e) => setForm({ ...form, nueva: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Confirmar nueva contraseña</label>
+              <input type="password" className="input" value={form.confirmar}
+                onChange={(e) => setForm({ ...form, confirmar: e.target.value })}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleGuardar() }} />
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={onCerrar} className="btn-ghost flex-1">Cancelar</button>
+              <button onClick={handleGuardar} disabled={guardando || !form.actual || !form.nueva}
+                className="btn-primary flex-1">
+                {guardando ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Sidebar() {
   const { admin, logout } = useAuth()
   const navigate = useNavigate()
+  const [modalPassword, setModalPassword] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -72,7 +158,13 @@ export default function Sidebar() {
             {admin?.nombre?.[0] || 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-300 truncate">{admin?.nombre || 'Admin'}</p>
+            <button
+              onClick={() => setModalPassword(true)}
+              className="text-xs font-medium text-gray-300 truncate hover:text-white transition-colors block w-full text-left"
+              title="Cambiar contraseña"
+            >
+              {admin?.nombre || 'Admin'}
+            </button>
             <p className="text-[10px] text-gray-600">Administrador</p>
           </div>
           <button
@@ -84,6 +176,8 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
+
+      {modalPassword && <ModalCambiarPassword onCerrar={() => setModalPassword(false)} />}
     </aside>
   )
 }

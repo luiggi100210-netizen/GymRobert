@@ -29,11 +29,34 @@ export default function Pagos() {
   }, [mes, anio])
 
   // Calcular totales
-  const totalMes = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0)
+  const totalMes  = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0)
   const porMetodo = pagos.reduce((acc, p) => {
     acc[p.metodo_pago] = (acc[p.metodo_pago] || 0) + parseFloat(p.monto)
     return acc
   }, {})
+
+  const exportarCSV = () => {
+    const cabecera = ['Miembro', 'DNI', 'Plan', 'Monto', 'Método', 'Fecha', 'Comprobante']
+    const filas = pagos.map((p) => [
+      `${p.nombres} ${p.apellidos}`,
+      p.dni,
+      p.plan_nombre,
+      parseFloat(p.monto).toFixed(2),
+      p.metodo_pago,
+      new Date(p.fecha_pago).toLocaleDateString('es-PE'),
+      p.comprobante || '',
+    ])
+    const csv = [cabecera, ...filas]
+      .map((fila) => fila.map((v) => `"${v}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `pagos_${MESES[mes - 1]}_${anio}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-5">
@@ -43,6 +66,14 @@ export default function Pagos() {
           <p className="text-sm text-gray-500 mt-0.5">Historial de cobros y métodos de pago</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={exportarCSV}
+            disabled={pagos.length === 0}
+            className="btn-ghost text-sm flex items-center gap-1.5"
+            title="Exportar a CSV"
+          >
+            ↓ CSV
+          </button>
           <select
             className="input w-auto text-sm"
             value={mes}

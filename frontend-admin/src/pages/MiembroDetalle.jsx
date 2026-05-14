@@ -180,8 +180,9 @@ export default function MiembroDetalle() {
   const [miembro, setMiembro]     = useState(null)
   const [cargando, setCargando]   = useState(true)
   const [error, setError]         = useState('')
-  const [modalRenovar, setModalRenovar] = useState(false)
-  const [renovado, setRenovado]   = useState(false)
+  const [modalRenovar, setModalRenovar]       = useState(false)
+  const [renovado, setRenovado]               = useState(false)
+  const [cambiandoEstado, setCambiandoEstado] = useState(false)
 
   const cargar = () => {
     setCargando(true)
@@ -192,6 +193,23 @@ export default function MiembroDetalle() {
   }
 
   useEffect(() => { cargar() }, [id])
+
+  const handleCambiarEstado = async () => {
+    const nuevoEstado = miembro.estado === 'suspendido' ? 'activo' : 'suspendido'
+    const confirmar   = window.confirm(
+      nuevoEstado === 'suspendido'
+        ? `¿Suspender a ${miembro.nombres}? No podrá ingresar al gimnasio.`
+        : `¿Reactivar a ${miembro.nombres}?`
+    )
+    if (!confirmar) return
+    setCambiandoEstado(true)
+    try {
+      await api.put(`/miembros/${miembro.id}`, { estado: nuevoEstado })
+      cargar()
+    } finally {
+      setCambiandoEstado(false)
+    }
+  }
 
   const handleRenovado = () => {
     setModalRenovar(false)
@@ -223,6 +241,13 @@ export default function MiembroDetalle() {
         <span>/</span>
         <span className="text-gray-300">{miembro.nombres} {miembro.apellidos}</span>
       </div>
+
+      {/* Banner suspendido */}
+      {miembro.estado === 'suspendido' && (
+        <div className="bg-red-900/20 border border-red-800/40 rounded-xl px-4 py-3 text-sm text-red-300 flex items-center gap-2">
+          <span>⛔</span> Este miembro está suspendido — no puede ingresar al gimnasio
+        </div>
+      )}
 
       {/* Aviso de renovación exitosa */}
       {renovado && (
@@ -256,7 +281,18 @@ export default function MiembroDetalle() {
             </span>
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          <button
+            onClick={handleCambiarEstado}
+            disabled={cambiandoEstado}
+            className={`text-sm px-3 py-2 rounded-lg border font-medium transition-colors ${
+              miembro.estado === 'suspendido'
+                ? 'border-emerald-700 text-emerald-400 hover:bg-emerald-900/30'
+                : 'border-red-800 text-red-400 hover:bg-red-900/20'
+            }`}
+          >
+            {cambiandoEstado ? '...' : miembro.estado === 'suspendido' ? 'Reactivar' : 'Suspender'}
+          </button>
           <button
             onClick={() => navigate(`/miembros/nuevo?editar=${miembro.id}`)}
             className="btn-ghost text-sm"
