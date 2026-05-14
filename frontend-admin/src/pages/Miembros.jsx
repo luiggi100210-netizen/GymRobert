@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -190,7 +190,12 @@ export default function Miembros() {
                   return (
                     <tr key={m.id} className="table-row">
                       <td className="px-5 py-3">
-                        <p className="font-semibold text-gray-200">{m.nombres} {m.apellidos}</p>
+                        <Link
+                          to={`/miembros/${m.id}`}
+                          className="font-semibold text-gray-200 hover:text-gym-red-light transition-colors"
+                        >
+                          {m.nombres} {m.apellidos}
+                        </Link>
                         <p className="text-xs text-gray-600">DNI: {m.dni}</p>
                       </td>
                       <td className="px-4 py-3">

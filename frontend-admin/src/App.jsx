@@ -8,7 +8,8 @@ import NuevoMiembro from './pages/NuevoMiembro'
 import Asistencia  from './pages/Asistencia'
 import Pagos       from './pages/Pagos'
 import Reportes    from './pages/Reportes'
-import Planes      from './pages/Planes'
+import Planes         from './pages/Planes'
+import MiembroDetalle from './pages/MiembroDetalle'
 
 // Ruta protegida: redirige a login si no está autenticado
 function PrivateRoute({ children }) {
@@ -32,7 +33,8 @@ function AppRoutes() {
       >
         <Route index          element={<Dashboard />} />
         <Route path="miembros"       element={<Miembros />} />
-        <Route path="miembros/nuevo" element={<NuevoMiembro />} />
+        <Route path="miembros/nuevo"  element={<NuevoMiembro />} />
+        <Route path="miembros/:id"    element={<MiembroDetalle />} />
         <Route path="asistencia"     element={<Asistencia />} />
         <Route path="pagos"          element={<Pagos />} />
         <Route path="reportes"       element={<Reportes />} />

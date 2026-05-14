@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts'
 import api from '../api/client'
+import { linkWhatsapp } from '../utils/whatsapp'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -193,17 +194,37 @@ function VencenProximo() {
         <p className="text-xs text-gray-600 text-center py-4">Ninguno próximo a vencer</p>
       ) : (
         <ul className="space-y-2">
-          {lista.slice(0, 7).map((m) => (
-            <li key={m.membresia_id} className="flex items-center justify-between py-1.5 border-b border-gym-border last:border-0">
-              <div>
-                <p className="text-xs font-medium text-gray-300">{m.nombres} {m.apellidos}</p>
-                <p className="text-[10px] text-gray-600">{m.plan_nombre}</p>
-              </div>
-              <span className={`text-xs font-bold ${m.dias_restantes <= 3 ? 'text-red-400' : 'text-amber-400'}`}>
-                {m.dias_restantes}d
-              </span>
-            </li>
-          ))}
+          {lista.slice(0, 7).map((m) => {
+            const waLink = linkWhatsapp(m.telefono, m.nombres, m.dias_restantes, m.plan_nombre)
+            return (
+              <li key={m.membresia_id} className="flex items-center justify-between py-2 border-b border-gym-border last:border-0 gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-300 truncate">{m.nombres} {m.apellidos}</p>
+                  <p className="text-[10px] text-gray-600">{m.plan_nombre}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs font-bold ${m.dias_restantes <= 3 ? 'text-red-400' : 'text-amber-400'}`}>
+                    {m.dias_restantes}d
+                  </span>
+                  {waLink ? (
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Enviar recordatorio por WhatsApp"
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-900/40 hover:bg-emerald-600 border border-emerald-800 hover:border-emerald-500 transition-colors text-emerald-400 hover:text-white text-xs font-bold"
+                    >
+                      W
+                    </a>
+                  ) : (
+                    <span title="Sin número registrado" className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-gray-600 text-xs cursor-not-allowed">
+                      W
+                    </span>
+                  )}
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
