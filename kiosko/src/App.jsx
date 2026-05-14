@@ -11,7 +11,6 @@ import { useState, useCallback, useRef } from 'react'
 import { registrarToque } from './api/asistencia'
 import { useSensor }       from './hooks/useSensor'
 import { RESET_MS }        from './constants/resetTimes'
-import BarraLateral        from './components/BarraLateral'
 import PantallaIdle        from './components/PantallaIdle'
 import PantallaScanning    from './components/PantallaScanning'
 import PantallaEntrada     from './components/PantallaEntrada'
@@ -73,24 +72,32 @@ export default function App() {
   useSensor({ onToque: handleToque })
 
   return (
-    <div className="flex h-screen w-screen bg-kiosko-bg overflow-hidden">
-      {/* Barra lateral de color */}
-      <BarraLateral estado={estado} />
+    <div className="flex h-screen w-screen bg-[#0a0a0a] items-center justify-center overflow-hidden">
 
-      {/* Contenido principal */}
-      <div className="flex-1 relative overflow-hidden">
-        {estado === 'idle'     && <PantallaIdle onClickSensor={() => handleToque('FP-DEMO-001')} />}
-        {estado === 'scan'     && <PantallaScanning />}
-        {estado === 'entrada'  && respuesta && <PantallaEntrada  respuesta={respuesta} />}
-        {estado === 'salida'   && respuesta && <PantallaSalida   respuesta={respuesta} />}
-        {estado === 'denegado' && respuesta && <PantallaDenegado respuesta={respuesta} />}
-        {estado === 'ignorado' && <PantallaIdle />}
+      {/* Card del kiosko */}
+      <div className="relative w-[500px] rounded-[18px] overflow-hidden border border-[#1f1f1f] text-center shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+
+        {/* Fondo con imagen de gym oscurecida */}
+        <div
+          className="absolute inset-0 bg-cover bg-center z-0"
+          style={{ backgroundImage: "url('/gym-bg.jpg')", filter: 'brightness(0.22) saturate(0.5)' }}
+        />
+
+        {/* Contenido */}
+        <div className="relative z-10 px-9 pt-8 pb-[22px]">
+          {estado === 'idle'     && <PantallaIdle onClickSensor={() => handleToque('FP-DEMO-001')} />}
+          {estado === 'scan'     && <PantallaScanning />}
+          {estado === 'entrada'  && respuesta && <PantallaEntrada  respuesta={respuesta} />}
+          {estado === 'salida'   && respuesta && <PantallaSalida   respuesta={respuesta} />}
+          {estado === 'denegado' && respuesta && <PantallaDenegado respuesta={respuesta} />}
+          {estado === 'ignorado' && <PantallaIdle />}
+        </div>
       </div>
 
-      {/* Panel de ayuda en modo demo (esquina inferior derecha) */}
+      {/* Panel de ayuda demo */}
       <DemoHelp />
 
-      {/* Error de red (overlay sutil) */}
+      {/* Error de red */}
       {error && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-red-900/80 border border-red-700 text-red-200 text-xs px-4 py-2 rounded-full backdrop-blur-sm">
           {error}

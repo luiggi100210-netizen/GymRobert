@@ -1,35 +1,39 @@
 /**
- * Ícono SVG de huella dactilar con animaciones de estado.
- * estado: 'idle' | 'scan' | 'ok' | 'error'
+ * Sensor biométrico con animaciones de estado.
+ * idle  → anillo rojo pulsante + ☝
+ * scan  → SVG huella ámbar + línea de escaneo
+ * ok    → SVG huella verde + checkmark
+ * error → SVG huella roja + X
  */
 export default function HuellaIcon({ estado = 'idle', onClick }) {
-  const colorBase = {
-    idle:  '#dc2626',
-    scan:  '#f59e0b',
-    ok:    '#10b981',
-    error: '#ef4444',
-  }[estado]
 
-  const esClickable = estado === 'idle' && !!onClick
+  /* ── Estado IDLE: anillo clickeable ── */
+  if (estado === 'idle') {
+    return (
+      <div
+        className={`relative flex items-center justify-center w-[100px] h-[100px] ${onClick ? 'cursor-pointer' : ''}`}
+        onClick={onClick}
+        title={onClick ? 'Toque para simular acceso' : undefined}
+      >
+        {/* Anillo pulsante */}
+        <div className="absolute inset-[-1px] rounded-full border border-[rgba(224,32,32,0.55)] animate-sensor_pulse pointer-events-none" />
+
+        {/* Círculo base */}
+        <div className="w-full h-full rounded-full bg-[rgba(18,18,18,0.82)] border-2 border-[#444] hover:border-[#e02020] flex items-center justify-center backdrop-blur-sm transition-colors duration-300">
+          <span className="text-[46px] text-[#e02020] leading-none select-none">☝</span>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Estados scan / ok / error: SVG de huella ── */
+  const colorBase = { scan: '#f59e0b', ok: '#10b981', error: '#ef4444' }[estado]
 
   return (
-    <div
-      className={`relative flex items-center justify-center ${esClickable ? 'cursor-pointer select-none' : ''}`}
-      onClick={esClickable ? onClick : undefined}
-      title={esClickable ? 'Toque para simular acceso' : undefined}
-    >
-      {/* Halo rojo pulsante en idle */}
-      {estado === 'idle' && (
-        <>
-          <div className="absolute inset-0 rounded-full bg-red-600/10 animate-ping scale-125 pointer-events-none" />
-          <div className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse pointer-events-none" />
-        </>
-      )}
-
-      {/* SVG de huella dactilar */}
+    <div className="relative flex items-center justify-center">
       <svg
         viewBox="0 0 120 120"
-        className={`w-44 h-44 transition-all duration-500 ${estado === 'idle' ? 'animate-pulse_fp' : ''}`}
+        className="w-44 h-44 transition-all duration-500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -43,13 +47,7 @@ export default function HuellaIcon({ estado = 'idle', onClick }) {
         </g>
 
         {estado === 'ok' && (
-          <path
-            d="M40 62 L55 77 L80 48"
-            stroke="#10b981"
-            strokeWidth="5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M40 62 L55 77 L80 48" stroke="#10b981" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
         )}
 
         {estado === 'error' && (
@@ -67,23 +65,11 @@ export default function HuellaIcon({ estado = 'idle', onClick }) {
         </div>
       )}
 
-      {/* Halo en estados no-idle */}
-      {estado !== 'idle' && (
-        <div className={`absolute inset-0 rounded-full blur-3xl opacity-20 transition-all duration-700 pointer-events-none ${
-          estado === 'scan'  ? 'bg-amber-400' :
-          estado === 'ok'    ? 'bg-emerald-400' :
-          estado === 'error' ? 'bg-red-500' : ''
-        }`} />
-      )}
-
-      {/* Etiqueta en demo */}
-      {esClickable && (
-        <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none">
-          <p className="text-[10px] font-bold uppercase tracking-[3px] text-red-600/50 animate-pulse">
-            toque aquí
-          </p>
-        </div>
-      )}
+      {/* Halo de color */}
+      <div className={`absolute inset-0 rounded-full blur-3xl opacity-20 transition-all duration-700 pointer-events-none ${
+        estado === 'scan'  ? 'bg-amber-400' :
+        estado === 'ok'    ? 'bg-emerald-400' : 'bg-red-500'
+      }`} />
     </div>
   )
 }

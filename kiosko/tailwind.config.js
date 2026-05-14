@@ -4,7 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans:  ['Inter', 'system-ui', 'sans-serif'],
+        bebas: ['Bebas Neue', 'sans-serif'],
       },
       colors: {
         kiosko: {
@@ -49,6 +50,11 @@ export default {
           from: { strokeDashoffset: '0' },
           to:   { strokeDashoffset: '220' },
         },
+        // Anillo de sensor biométrico
+        sensor_pulse: {
+          '0%':   { transform: 'scale(1)',   opacity: '0.7' },
+          '100%': { transform: 'scale(1.7)', opacity: '0' },
+        },
       },
       animation: {
         pulse_fp:    'pulse_fp 2s ease-in-out infinite',
@@ -56,7 +62,8 @@ export default {
         glow_green:  'glow_green 2s ease-in-out infinite',
         glow_blue:   'glow_blue 2s ease-in-out infinite',
         glow_red:    'glow_red 2s ease-in-out infinite',
-        slide_up:    'slide_up 0.4s cubic-bezier(0.16,1,0.3,1) both',
+        slide_up:     'slide_up 0.4s cubic-bezier(0.16,1,0.3,1) both',
+        sensor_pulse: 'sensor_pulse 2.4s ease-out infinite',
       },
     },
   },
