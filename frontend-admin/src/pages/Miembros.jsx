@@ -102,7 +102,7 @@ export default function Miembros() {
     if (filtroPlan)  params.plan_id   = filtroPlan
 
     api.get('/miembros', { params })
-      .then(({ data }) => setMiembros(data))
+      .then(({ data }) => setMiembros(data.data))
       .finally(() => setCargando(false))
   }, [buscar, filtroEstado, filtroPlan])
 

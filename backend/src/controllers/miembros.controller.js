@@ -7,6 +7,9 @@ const { esFechaValida } = require('../utils/validaciones');
 async function listarMiembros(req, res, next) {
   try {
     const { estado, plan_id, buscar } = req.query;
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+    const offset = (page - 1) * limit;
 
     let query = `
       SELECT
@@ -18,8 +21,8 @@ async function listarMiembros(req, res, next) {
         p.nombre        AS plan_nombre,
         p.precio        AS plan_precio,
         p.duracion_dias,
-        -- Días restantes de membresía
-        GREATEST(0, mem.fecha_fin - CURRENT_DATE) AS dias_restantes
+        GREATEST(0, mem.fecha_fin - CURRENT_DATE) AS dias_restantes,
+        COUNT(*) OVER()                            AS total_count
       FROM miembros m
       LEFT JOIN LATERAL (
         SELECT * FROM membresias
@@ -49,16 +52,20 @@ async function listarMiembros(req, res, next) {
       query += ` AND (
         LOWER(m.nombres)   LIKE $${idx}   OR
         LOWER(m.apellidos) LIKE $${idx}   OR
-        m.dni              LIKE $${idx}
+        LOWER(m.dni)       LIKE $${idx}
       )`;
       params.push(`%${buscar.toLowerCase()}%`);
       idx++;
     }
 
-    query += ' ORDER BY m.fecha_registro DESC';
+    query += ` ORDER BY m.fecha_registro DESC LIMIT $${idx++} OFFSET $${idx++}`;
+    params.push(limit, offset);
 
     const { rows } = await pool.query(query, params);
-    res.json(rows);
+    const total = rows.length > 0 ? parseInt(rows[0].total_count) : 0;
+    const data  = rows.map(({ total_count, ...r }) => r);
+
+    res.json({ data, total, page, limit });
   } catch (err) {
     next(err);
   }

@@ -43,7 +43,7 @@ export default function Reportes() {
             ))}
           </select>
           <select className="input w-auto text-sm" value={anio} onChange={(e) => setAnio(Number(e.target.value))}>
-            {[2024, 2025, 2026].map((a) => <option key={a} value={a}>{a}</option>)}
+            {Array.from({ length: new Date().getFullYear() - 2023 }, (_, i) => 2024 + i).map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
       </div>

@@ -36,7 +36,7 @@ function ModalRegistroManual({ onCerrar, onRegistrado }) {
     if (!q.trim()) { setMiembros([]); return }
     setBuscando(true)
     api.get('/miembros', { params: { buscar: q } })
-      .then(({ data }) => setMiembros(data.slice(0, 6)))
+      .then(({ data }) => setMiembros(data.data.slice(0, 6)))
       .finally(() => setBuscando(false))
   }, [])
 
@@ -427,7 +427,7 @@ function TabReporteMensual() {
           value={anio}
           onChange={(e) => setAnio(Number(e.target.value))}
         >
-          {[2024, 2025, 2026].map((a) => (
+          {Array.from({ length: new Date().getFullYear() - 2023 }, (_, i) => 2024 + i).map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
         </select>

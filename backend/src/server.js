@@ -1,6 +1,11 @@
 // Punto de entrada del servidor
 require('dotenv').config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET no está definido en las variables de entorno.');
+  process.exit(1);
+}
+
 // Configurar zona horaria de Perú
 process.env.TZ = 'America/Lima';
 

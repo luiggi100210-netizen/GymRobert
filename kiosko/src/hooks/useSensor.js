@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const MODO               = import.meta.env.VITE_SENSOR_MODE || 'demo'
-const WS_URL             = 'ws://localhost:8765'
+const WS_URL             = import.meta.env.VITE_SENSOR_WS_URL || 'ws://localhost:8765'
 const HUELLA_ACTIVA      = 'FP-DEMO-001'
 const HUELLA_VENCIDA     = 'FP-VENCIDO-999'
 const HUELLA_DESCONOCIDA = 'FP-DESCONOCIDO-000'
