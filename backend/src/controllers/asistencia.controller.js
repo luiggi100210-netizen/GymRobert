@@ -4,15 +4,15 @@ const pool = require('../config/database');
 // POST /api/asistencia/toque
 // Endpoint principal del kiosco: registra entrada o salida automáticamente
 async function registrarToque(req, res, next) {
+  const { huella_id } = req.body;
+
+  if (!huella_id) {
+    return res.status(400).json({ error: 'huella_id es requerido' });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const { huella_id } = req.body;
-
-    if (!huella_id) {
-      return res.status(400).json({ error: 'huella_id es requerido' });
-    }
 
     // 1. Buscar miembro por huella_id
     const { rows: miembroRows } = await client.query(
@@ -22,6 +22,7 @@ async function registrarToque(req, res, next) {
     );
 
     if (miembroRows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({
         estado: 'denegado',
         motivo: 'huella_no_registrada',
@@ -281,15 +282,15 @@ async function reporteMensual(req, res, next) {
 // POST /api/asistencia/manual
 // Registro manual de entrada/salida desde el panel admin (requiere auth)
 async function registrarManual(req, res, next) {
+  const { miembro_id } = req.body;
+
+  if (!miembro_id) {
+    return res.status(400).json({ error: 'miembro_id es requerido' });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const { miembro_id } = req.body;
-
-    if (!miembro_id) {
-      return res.status(400).json({ error: 'miembro_id es requerido' });
-    }
 
     // Verificar que el miembro exista
     const { rows: miembroRows } = await client.query(

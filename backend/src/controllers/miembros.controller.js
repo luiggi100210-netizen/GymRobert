@@ -125,22 +125,21 @@ async function obtenerMiembro(req, res, next) {
 // POST /api/miembros
 // Crear miembro + membresía + pago en una sola operación
 async function crearMiembro(req, res, next) {
+  const {
+    dni, nombres, apellidos, telefono, fecha_nacimiento, huella_id,
+    plan_id, fecha_inicio,
+    metodo_pago, comprobante
+  } = req.body;
+
+  if (!dni || !nombres || !apellidos || !plan_id || !fecha_inicio) {
+    return res.status(400).json({
+      error: 'DNI, nombres, apellidos, plan y fecha de inicio son requeridos'
+    });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const {
-      dni, nombres, apellidos, telefono, fecha_nacimiento, huella_id,
-      plan_id, fecha_inicio,
-      metodo_pago, comprobante
-    } = req.body;
-
-    // Validaciones básicas
-    if (!dni || !nombres || !apellidos || !plan_id || !fecha_inicio) {
-      return res.status(400).json({
-        error: 'DNI, nombres, apellidos, plan y fecha de inicio son requeridos'
-      });
-    }
 
     // Crear miembro
     const { rows: miembroRows } = await client.query(

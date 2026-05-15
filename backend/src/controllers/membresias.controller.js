@@ -4,15 +4,15 @@ const pool = require('../config/database');
 // POST /api/membresias
 // Renovar membresía de un miembro existente
 async function renovarMembresia(req, res, next) {
+  const { miembro_id, plan_id, fecha_inicio, metodo_pago, comprobante } = req.body;
+
+  if (!miembro_id || !plan_id || !fecha_inicio) {
+    return res.status(400).json({ error: 'Miembro, plan y fecha de inicio son requeridos' });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const { miembro_id, plan_id, fecha_inicio, metodo_pago, comprobante } = req.body;
-
-    if (!miembro_id || !plan_id || !fecha_inicio) {
-      return res.status(400).json({ error: 'Miembro, plan y fecha de inicio son requeridos' });
-    }
 
     // Verificar que el miembro exista
     const { rows: miembroRows } = await client.query(

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: robertgym
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Aragon1002
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
