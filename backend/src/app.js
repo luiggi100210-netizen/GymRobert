@@ -21,6 +21,9 @@ const app = express();
 app.set('trust proxy', 1);
 
 // CORS — restringir origen en producción con CORS_ORIGIN env var
+if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGIN) {
+  console.warn('ADVERTENCIA: CORS_ORIGIN no definido en producción. Usando * (permite cualquier origen).');
+}
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,

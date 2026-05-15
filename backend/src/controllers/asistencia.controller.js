@@ -184,17 +184,16 @@ async function asistenciasDia(req, res, next) {
       `SELECT
         a.*,
         m.nombres, m.apellidos, m.dni,
-        p.nombre AS plan_nombre
+        mem.plan_nombre
        FROM asistencias a
        JOIN miembros m ON a.miembro_id = m.id
        LEFT JOIN LATERAL (
-         SELECT mem2.*, p2.nombre AS plan_nombre
+         SELECT p2.nombre AS plan_nombre
          FROM membresias mem2
          JOIN planes p2 ON mem2.plan_id = p2.id
          WHERE mem2.miembro_id = m.id
          ORDER BY mem2.fecha_fin DESC LIMIT 1
        ) mem ON true
-       LEFT JOIN planes p ON mem.plan_id = p.id
        WHERE a.fecha = $1
        ORDER BY a.entrada ASC`,
       [fecha]

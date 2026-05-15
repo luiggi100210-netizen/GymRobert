@@ -1,6 +1,10 @@
 // Manejador global de errores
 function errorHandler(err, req, res, next) {
-  console.error('Error:', err.message, err.stack);
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('Error:', err.message, err.stack);
+  } else {
+    console.error('Error:', err.message);
+  }
 
   // Error de PostgreSQL: violación de restricción única
   if (err.code === '23505') {

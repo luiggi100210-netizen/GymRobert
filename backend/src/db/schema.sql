@@ -104,8 +104,7 @@ INSERT INTO planes (nombre, duracion_dias, precio) VALUES
   ('Anual',      365, 720.00)
 ON CONFLICT DO NOTHING;
 
--- Admin por defecto: usuario=admin, password=admin123
--- El hash corresponde a bcrypt de 'admin123'
+-- Admin por defecto (cambiar contraseña tras el primer inicio de sesión)
 INSERT INTO admin (username, password, nombre) VALUES
   ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrador')
 ON CONFLICT (username) DO NOTHING;

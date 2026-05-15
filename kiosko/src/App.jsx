@@ -10,7 +10,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { registrarToque } from './api/asistencia'
 import { useSensor }       from './hooks/useSensor'
-import { RESET_MS }        from './constants/resetTimes'
+import { RESET_MS, SCAN_DELAY_MS } from './constants/resetTimes'
 import PantallaIdle        from './components/PantallaIdle'
 import PantallaScanning    from './components/PantallaScanning'
 import PantallaEntrada     from './components/PantallaEntrada'
@@ -44,8 +44,8 @@ export default function App() {
     setEstado('scan')
     setError(null)
 
-    // Simular breve delay de escaneo para que se vea la animación
-    await new Promise((r) => setTimeout(r, 1200))
+    // Breve delay para que se vea la animación de escaneo
+    await new Promise((r) => setTimeout(r, SCAN_DELAY_MS))
 
     try {
       const datos = await registrarToque(huellaId)
