@@ -1,5 +1,6 @@
 // Controlador de miembros del gimnasio
 const pool = require('../config/database');
+const { esFechaValida } = require('../utils/validaciones');
 
 // GET /api/miembros
 // Lista todos los miembros con estado de membresía activa
@@ -135,6 +136,10 @@ async function crearMiembro(req, res, next) {
     return res.status(400).json({
       error: 'DNI, nombres, apellidos, plan y fecha de inicio son requeridos'
     });
+  }
+
+  if (!esFechaValida(fecha_inicio)) {
+    return res.status(400).json({ error: 'fecha_inicio inválida. Formato esperado: YYYY-MM-DD' });
   }
 
   const client = await pool.connect();

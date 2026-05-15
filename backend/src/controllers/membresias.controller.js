@@ -1,5 +1,6 @@
 // Controlador de membresías
 const pool = require('../config/database');
+const { esFechaValida } = require('../utils/validaciones');
 
 // POST /api/membresias
 // Renovar membresía de un miembro existente
@@ -8,6 +9,10 @@ async function renovarMembresia(req, res, next) {
 
   if (!miembro_id || !plan_id || !fecha_inicio) {
     return res.status(400).json({ error: 'Miembro, plan y fecha de inicio son requeridos' });
+  }
+
+  if (!esFechaValida(fecha_inicio)) {
+    return res.status(400).json({ error: 'fecha_inicio inválida. Formato esperado: YYYY-MM-DD' });
   }
 
   const client = await pool.connect();

@@ -51,12 +51,17 @@ async function registrarPago(req, res, next) {
       return res.status(400).json({ error: 'Membresía y monto son requeridos' });
     }
 
+    const montoNum = parseFloat(monto);
+    if (isNaN(montoNum) || montoNum <= 0) {
+      return res.status(400).json({ error: 'El monto debe ser un número mayor a 0' });
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO pagos (membresia_id, monto, metodo_pago, fecha_pago, comprobante)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [
         membresia_id,
-        parseFloat(monto),
+        montoNum,
         metodo_pago || 'efectivo',
         fecha_pago  || null,
         comprobante || null

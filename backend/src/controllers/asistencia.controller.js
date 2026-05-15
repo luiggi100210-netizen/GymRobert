@@ -210,7 +210,15 @@ async function asistenciasDia(req, res, next) {
 // Reporte mensual de asistencias
 async function reporteMensual(req, res, next) {
   try {
-    const { mes, anio } = req.params;
+    const mes  = parseInt(req.params.mes);
+    const anio = parseInt(req.params.anio);
+
+    if (isNaN(mes) || mes < 1 || mes > 12) {
+      return res.status(400).json({ error: 'Mes inválido (debe ser 1-12)' });
+    }
+    if (isNaN(anio) || anio < 2020 || anio > 2100) {
+      return res.status(400).json({ error: 'Año inválido' });
+    }
 
     // Total de asistencias del mes
     const { rows: totales } = await pool.query(
@@ -222,7 +230,7 @@ async function reporteMensual(req, res, next) {
        FROM asistencias
        WHERE EXTRACT(MONTH FROM fecha) = $1
          AND EXTRACT(YEAR  FROM fecha) = $2`,
-      [parseInt(mes), parseInt(anio)]
+      [mes, anio]
     );
 
     // Asistencias por día
@@ -236,7 +244,7 @@ async function reporteMensual(req, res, next) {
          AND EXTRACT(YEAR  FROM fecha) = $2
        GROUP BY fecha
        ORDER BY fecha ASC`,
-      [parseInt(mes), parseInt(anio)]
+      [mes, anio]
     );
 
     // Asistencias por día de semana
@@ -250,7 +258,7 @@ async function reporteMensual(req, res, next) {
          AND EXTRACT(YEAR  FROM fecha) = $2
        GROUP BY dia_semana, numero_dia
        ORDER BY numero_dia`,
-      [parseInt(mes), parseInt(anio)]
+      [mes, anio]
     );
 
     // Top 5 miembros más asistentes
@@ -265,7 +273,7 @@ async function reporteMensual(req, res, next) {
        GROUP BY m.id, m.nombres, m.apellidos, m.dni
        ORDER BY total_asistencias DESC
        LIMIT 5`,
-      [parseInt(mes), parseInt(anio)]
+      [mes, anio]
     );
 
     res.json({
