@@ -6,8 +6,8 @@ const sol = (n) => `S/ ${parseFloat(n || 0).toFixed(2)}`
 
 const PLAN_ICONS = { 30: '📅', 90: '🗓️', 365: '🏆' }
 const PLAN_COLORS = {
-  30:  'border-blue-800 bg-blue-900/10',
-  90:  'border-amber-800 bg-amber-900/10',
+  30:  'border-blue-400 bg-blue-50',
+  90:  'border-amber-400 bg-amber-50',
   365: 'border-gym-red bg-gym-red/10',
 }
 
@@ -74,7 +74,7 @@ export default function Planes() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Planes</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Planes</h1>
           <p className="text-sm text-gray-500 mt-0.5">Tipos de membresía disponibles</p>
         </div>
         <button onClick={abrirNuevo} className="btn-primary text-sm">
@@ -90,15 +90,15 @@ export default function Planes() {
               className={`card border-2 ${PLAN_COLORS[plan.duracion_dias] || 'border-gym-border'} relative`}
             >
               {!plan.activo && (
-                <span className="absolute top-3 right-3 text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
+                <span className="absolute top-3 right-3 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
                   Inactivo
                 </span>
               )}
               <div className="text-3xl mb-3">{PLAN_ICONS[plan.duracion_dias] || '🏷️'}</div>
-              <h3 className="text-lg font-bold text-white">{plan.nombre}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{plan.nombre}</h3>
               <p className="text-sm text-gray-500 mt-0.5">{plan.duracion_dias} días de vigencia</p>
-              <p className="text-3xl font-black text-gym-red-light mt-3">{sol(plan.precio)}</p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-3xl font-black text-gym-red mt-3">{sol(plan.precio)}</p>
+              <p className="text-xs text-gray-400 mt-1">
                 S/ {(plan.precio / plan.duracion_dias).toFixed(2)} / día
               </p>
               <button
@@ -117,10 +117,10 @@ export default function Planes() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="card w-full max-w-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white">
+              <h2 className="text-sm font-bold text-gray-900">
                 {modal === 'nuevo' ? 'Nuevo plan' : `Editar: ${modal.nombre}`}
               </h2>
-              <button onClick={() => setModal(null)} className="text-gray-600 hover:text-gray-300">✕</button>
+              <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-700">✕</button>
             </div>
 
             <div>
@@ -164,12 +164,12 @@ export default function Planes() {
                   onChange={(e) => setForm({ ...form, activo: e.target.checked })}
                   className="accent-gym-red"
                 />
-                <label htmlFor="activo" className="text-sm text-gray-400">Plan activo</label>
+                <label htmlFor="activo" className="text-sm text-gray-600">Plan activo</label>
               </div>
             )}
 
             {error && (
-              <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+              <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}

@@ -42,17 +42,17 @@ function CeldaTelefono({ miembro, onActualizar }) {
       <div className="flex items-center gap-1">
         <input
           type="text"
-          className="w-28 bg-gray-900 border border-gym-red rounded px-2 py-1 text-xs text-white focus:outline-none"
+          className="w-28 bg-white border border-gym-red rounded px-2 py-1 text-xs text-gray-900 focus:outline-none"
           value={tel}
           maxLength={9}
           onChange={(e) => setTel(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') guardar(); if (e.key === 'Escape') setEditando(false) }}
           autoFocus
         />
-        <button onClick={guardar} disabled={guardando} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold px-1">
+        <button onClick={guardar} disabled={guardando} className="text-xs text-emerald-600 hover:text-emerald-700 font-bold px-1">
           {guardando ? '...' : '✓'}
         </button>
-        <button onClick={() => setEditando(false)} className="text-xs text-gray-600 hover:text-gray-400 px-1">✕</button>
+        <button onClick={() => setEditando(false)} className="text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>
       </div>
     )
   }
@@ -62,13 +62,13 @@ function CeldaTelefono({ miembro, onActualizar }) {
       <button
         onClick={() => setEditando(true)}
         title="Click para editar"
-        className="text-xs text-gray-400 hover:text-white transition-colors group flex items-center gap-1"
+        className="text-xs text-gray-600 hover:text-gray-900 transition-colors group flex items-center gap-1"
       >
         {tel
           ? <span className="font-mono">{tel}</span>
-          : <span className="text-gray-700 italic">+ agregar</span>
+          : <span className="text-gray-400 italic">+ agregar</span>
         }
-        <span className="opacity-0 group-hover:opacity-100 text-gray-600 text-[10px]">✏️</span>
+        <span className="opacity-0 group-hover:opacity-100 text-gray-400 text-[10px]">✏️</span>
       </button>
       {waLink && (
         <a
@@ -76,7 +76,7 @@ function CeldaTelefono({ miembro, onActualizar }) {
           target="_blank"
           rel="noreferrer"
           title="Enviar WhatsApp"
-          className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/30 border border-emerald-800/50 text-emerald-500 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-colors font-bold"
+          className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-colors font-bold"
         >
           WA
         </a>
@@ -120,7 +120,7 @@ export default function Miembros() {
       {/* Cabecera */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Miembros</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Miembros</h1>
           <p className="text-sm text-gray-500 mt-0.5">{miembros.length} miembros encontrados</p>
         </div>
         <button
@@ -166,7 +166,7 @@ export default function Miembros() {
         {cargando ? (
           <Spinner />
         ) : miembros.length === 0 ? (
-          <div className="text-center py-16 text-gray-600">
+          <div className="text-center py-16 text-gray-400">
             <p className="text-3xl mb-2">👤</p>
             <p>No se encontraron miembros</p>
           </div>
@@ -174,7 +174,7 @@ export default function Miembros() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-gray-500 border-b border-gym-border bg-black/20">
+                <tr className="text-xs text-gray-500 border-b border-gym-border bg-gray-50">
                   <th className="text-left px-5 py-3 font-medium">Miembro</th>
                   <th className="text-left px-4 py-3 font-medium">Celular</th>
                   <th className="text-left px-4 py-3 font-medium">Plan</th>
@@ -192,26 +192,26 @@ export default function Miembros() {
                       <td className="px-5 py-3">
                         <Link
                           to={`/miembros/${m.id}`}
-                          className="font-semibold text-gray-200 hover:text-gym-red-light transition-colors"
+                          className="font-semibold text-gray-800 hover:text-gym-red transition-colors"
                         >
                           {m.nombres} {m.apellidos}
                         </Link>
-                        <p className="text-xs text-gray-600">DNI: {m.dni}</p>
+                        <p className="text-xs text-gray-400">DNI: {m.dni}</p>
                       </td>
                       <td className="px-4 py-3">
                         <CeldaTelefono miembro={m} onActualizar={cargar} />
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">{m.plan_nombre || '—'}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
+                      <td className="px-4 py-3 text-gray-600 text-xs">{m.plan_nombre || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">
                         {m.fecha_fin
                           ? new Date(m.fecha_fin).toLocaleDateString('es-PE')
                           : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-bold ${
-                          m.dias_restantes <= 0 ? 'text-red-400' :
-                          m.dias_restantes <= 7 ? 'text-amber-400' :
-                          'text-gray-400'
+                          m.dias_restantes <= 0 ? 'text-red-500' :
+                          m.dias_restantes <= 7 ? 'text-amber-500' :
+                          'text-gray-600'
                         }`}>
                           {m.dias_restantes != null ? `${m.dias_restantes}d` : '—'}
                         </span>
@@ -222,7 +222,7 @@ export default function Miembros() {
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => navigate(`/miembros/nuevo?editar=${m.id}`)}
-                          className="text-xs text-gray-500 hover:text-gym-red-light transition-colors"
+                          className="text-xs text-gray-500 hover:text-gym-red transition-colors"
                         >
                           Editar
                         </button>

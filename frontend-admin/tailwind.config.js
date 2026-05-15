@@ -9,9 +9,9 @@ export default {
           'red-dark': '#9b2c2c',
           'red-light': '#fc8181',
           black:    '#111111',
-          sidebar:  '#0f0f0f',
-          card:     '#1a1a1a',
-          border:   '#2a2a2a',
+          sidebar:  '#ffffff',
+          card:     '#ffffff',
+          border:   '#e5e7eb',
         },
       },
       fontFamily: {

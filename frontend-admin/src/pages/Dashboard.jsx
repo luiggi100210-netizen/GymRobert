@@ -32,13 +32,13 @@ export default function Dashboard() {
   }, [])
 
   if (cargando) return <Spinner />
-  if (error)    return <p className="text-red-400 text-center py-12">{error}</p>
+  if (error)    return <p className="text-red-500 text-center py-12">{error}</p>
 
   return (
     <div className="space-y-6">
       {/* Cabecera */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm text-gray-500 mt-0.5">Resumen general del gimnasio</p>
       </div>
 
@@ -78,12 +78,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Gráfico de barras: últimos 7 días */}
         <div className="card lg:col-span-3">
-          <h2 className="text-sm font-semibold text-gray-300 mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
             Asistencias — últimos 7 días
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={datos.asistencias_7_dias} barSize={28}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
               <XAxis
                 dataKey="etiqueta"
                 tick={{ fill: '#6b7280', fontSize: 11 }}
@@ -97,9 +97,9 @@ export default function Dashboard() {
                 allowDecimals={false}
               />
               <Tooltip
-                contentStyle={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8 }}
-                labelStyle={{ color: '#9ca3af' }}
-                itemStyle={{ color: '#fff' }}
+                contentStyle={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                labelStyle={{ color: '#6b7280' }}
+                itemStyle={{ color: '#111827' }}
               />
               <Bar dataKey="total" fill="#c53030" radius={[4, 4, 0, 0]} name="Asistencias" />
             </BarChart>
@@ -108,20 +108,20 @@ export default function Dashboard() {
 
         {/* Proyección */}
         <div className="card lg:col-span-2 flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-gray-300">Proyección</h2>
+          <h2 className="text-sm font-semibold text-gray-700">Proyección</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500">Cobrado este mes</span>
-              <span className="text-sm font-bold text-emerald-400">{sol(datos.ingresos_mes)}</span>
+              <span className="text-sm font-bold text-emerald-600">{sol(datos.ingresos_mes)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500">Proyección siguiente mes</span>
-              <span className="text-sm font-bold text-amber-400">{sol(datos.proyeccion_mes)}</span>
+              <span className="text-sm font-bold text-amber-600">{sol(datos.proyeccion_mes)}</span>
             </div>
             <div className="w-full h-px bg-gym-border" />
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500">Diferencia</span>
-              <span className={`text-sm font-bold ${datos.proyeccion_mes >= datos.ingresos_mes ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-sm font-bold ${datos.proyeccion_mes >= datos.ingresos_mes ? 'text-emerald-600' : 'text-red-500'}`}>
                 {datos.proyeccion_mes >= datos.ingresos_mes ? '+' : ''}
                 {sol(datos.proyeccion_mes - datos.ingresos_mes)}
               </span>
@@ -135,8 +135,8 @@ export default function Dashboard() {
         {/* Últimos miembros */}
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-300">Miembros recientes</h2>
-            <Link to="/miembros" className="text-xs text-gym-red-light hover:underline">
+            <h2 className="text-sm font-semibold text-gray-700">Miembros recientes</h2>
+            <Link to="/miembros" className="text-xs text-gym-red hover:underline">
               Ver todos →
             </Link>
           </div>
@@ -154,11 +154,11 @@ export default function Dashboard() {
                 {datos.ultimos_miembros.map((m) => (
                   <tr key={m.id} className="table-row">
                     <td className="py-2.5 pr-4">
-                      <p className="font-medium text-gray-200">{m.nombres} {m.apellidos}</p>
-                      <p className="text-xs text-gray-600">{m.dni}</p>
+                      <p className="font-medium text-gray-800">{m.nombres} {m.apellidos}</p>
+                      <p className="text-xs text-gray-400">{m.dni}</p>
                     </td>
-                    <td className="py-2.5 pr-4 text-gray-400 text-xs">{m.plan_nombre || '—'}</td>
-                    <td className="py-2.5 pr-4 text-gray-400 text-xs">
+                    <td className="py-2.5 pr-4 text-gray-600 text-xs">{m.plan_nombre || '—'}</td>
+                    <td className="py-2.5 pr-4 text-gray-600 text-xs">
                       {m.fecha_fin
                         ? new Date(m.fecha_fin).toLocaleDateString('es-PE')
                         : '—'}
@@ -189,9 +189,9 @@ function VencenProximo() {
 
   return (
     <div className="card">
-      <h2 className="text-sm font-semibold text-gray-300 mb-4">Vencen en 7 días</h2>
+      <h2 className="text-sm font-semibold text-gray-700 mb-4">Vencen en 7 días</h2>
       {lista.length === 0 ? (
-        <p className="text-xs text-gray-600 text-center py-4">Ninguno próximo a vencer</p>
+        <p className="text-xs text-gray-400 text-center py-4">Ninguno próximo a vencer</p>
       ) : (
         <ul className="space-y-2">
           {lista.slice(0, 7).map((m) => {
@@ -199,11 +199,11 @@ function VencenProximo() {
             return (
               <li key={m.membresia_id} className="flex items-center justify-between py-2 border-b border-gym-border last:border-0 gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-300 truncate">{m.nombres} {m.apellidos}</p>
-                  <p className="text-[10px] text-gray-600">{m.plan_nombre}</p>
+                  <p className="text-xs font-medium text-gray-700 truncate">{m.nombres} {m.apellidos}</p>
+                  <p className="text-[10px] text-gray-400">{m.plan_nombre}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-xs font-bold ${m.dias_restantes <= 3 ? 'text-red-400' : 'text-amber-400'}`}>
+                  <span className={`text-xs font-bold ${m.dias_restantes <= 3 ? 'text-red-500' : 'text-amber-500'}`}>
                     {m.dias_restantes}d
                   </span>
                   {waLink ? (
@@ -212,12 +212,12 @@ function VencenProximo() {
                       target="_blank"
                       rel="noreferrer"
                       title="Enviar recordatorio por WhatsApp"
-                      className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-900/40 hover:bg-emerald-600 border border-emerald-800 hover:border-emerald-500 transition-colors text-emerald-400 hover:text-white text-xs font-bold"
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-100 hover:bg-emerald-600 border border-emerald-300 hover:border-emerald-500 transition-colors text-emerald-600 hover:text-white text-xs font-bold"
                     >
                       W
                     </a>
                   ) : (
-                    <span title="Sin número registrado" className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-gray-600 text-xs cursor-not-allowed">
+                    <span title="Sin número registrado" className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 border border-gray-200 text-gray-400 text-xs cursor-not-allowed">
                       W
                     </span>
                   )}

@@ -62,7 +62,7 @@ export default function Pagos() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Pagos</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Pagos</h1>
           <p className="text-sm text-gray-500 mt-0.5">Historial de cobros y métodos de pago</p>
         </div>
         <div className="flex gap-2">
@@ -99,16 +99,16 @@ export default function Pagos() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total cobrado</p>
-          <p className="text-2xl font-bold text-emerald-400 mt-1">{sol(totalMes)}</p>
-          <p className="text-xs text-gray-600 mt-0.5">{pagos.length} pagos</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{sol(totalMes)}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{pagos.length} pagos</p>
         </div>
         {Object.entries(porMetodo).map(([metodo, monto]) => (
           <div key={metodo} className="card">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide flex items-center gap-1">
               <span>{ICONOS_PAGO[metodo] || '💳'}</span> {metodo}
             </p>
-            <p className="text-2xl font-bold text-white mt-1">{sol(monto)}</p>
-            <p className="text-xs text-gray-600 mt-0.5">
+            <p className="text-2xl font-bold text-gray-900 mt-1">{sol(monto)}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
               {pagos.filter((p) => p.metodo_pago === metodo).length} pagos
             </p>
           </div>
@@ -118,12 +118,12 @@ export default function Pagos() {
       {/* Tabla */}
       <div className="card p-0 overflow-hidden">
         {cargando ? <Spinner /> : pagos.length === 0 ? (
-          <p className="text-center text-gray-600 py-12">Sin pagos en este período</p>
+          <p className="text-center text-gray-400 py-12">Sin pagos en este período</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-gray-500 border-b border-gym-border bg-black/20">
+                <tr className="text-xs text-gray-500 border-b border-gym-border bg-gray-50">
                   <th className="text-left px-5 py-3 font-medium">Miembro</th>
                   <th className="text-left px-4 py-3 font-medium">Plan</th>
                   <th className="text-left px-4 py-3 font-medium">Monto</th>
@@ -136,23 +136,23 @@ export default function Pagos() {
                 {pagos.map((p) => (
                   <tr key={p.id} className="table-row">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-200">{p.nombres} {p.apellidos}</p>
-                      <p className="text-xs text-gray-600">DNI: {p.dni}</p>
+                      <p className="font-medium text-gray-800">{p.nombres} {p.apellidos}</p>
+                      <p className="text-xs text-gray-400">DNI: {p.dni}</p>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{p.plan_nombre}</td>
+                    <td className="px-4 py-3 text-gray-600 text-xs">{p.plan_nombre}</td>
                     <td className="px-4 py-3">
-                      <span className="font-bold text-emerald-400">{sol(p.monto)}</span>
+                      <span className="font-bold text-emerald-600">{sol(p.monto)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-gray-300 flex items-center gap-1">
+                      <span className="text-xs text-gray-700 flex items-center gap-1">
                         <span>{ICONOS_PAGO[p.metodo_pago] || '💳'}</span>
                         <span className="capitalize">{p.metodo_pago}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
+                    <td className="px-4 py-3 text-gray-600 text-xs">
                       {new Date(p.fecha_pago).toLocaleDateString('es-PE')}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">
+                    <td className="px-4 py-3 text-gray-400 text-xs">
                       {p.comprobante || '—'}
                     </td>
                   </tr>

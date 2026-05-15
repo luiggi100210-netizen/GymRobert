@@ -47,14 +47,14 @@ function ModalCambiarPassword({ onCerrar }) {
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="card w-full max-w-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">Cambiar contraseña</h2>
-          <button onClick={onCerrar} className="text-gray-600 hover:text-gray-300">✕</button>
+          <h2 className="text-sm font-bold text-gray-900">Cambiar contraseña</h2>
+          <button onClick={onCerrar} className="text-gray-400 hover:text-gray-700">✕</button>
         </div>
 
         {exito ? (
           <div className="text-center py-4">
             <p className="text-2xl mb-2">✓</p>
-            <p className="text-emerald-400 font-medium">Contraseña actualizada</p>
+            <p className="text-emerald-600 font-medium">Contraseña actualizada</p>
           </div>
         ) : (
           <>
@@ -76,7 +76,7 @@ function ModalCambiarPassword({ onCerrar }) {
             </div>
 
             {error && (
-              <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
@@ -112,7 +112,7 @@ export default function Sidebar() {
         <img
           src="/robert-gym-logo.png"
           alt="Robert Gym"
-          className="w-[148px] h-auto mix-blend-screen drop-shadow-[0_0_18px_rgba(220,38,38,0.35)]"
+          className="w-[148px] h-auto drop-shadow-[0_0_12px_rgba(197,48,48,0.25)]"
         />
       </div>
 
@@ -127,7 +127,7 @@ export default function Sidebar() {
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
                 isActive
                   ? 'bg-gym-red text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
               }`
             }
           >
@@ -141,7 +141,7 @@ export default function Sidebar() {
       <div className="px-3 pb-3">
         <NavLink
           to="/miembros/nuevo"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-gym-red/10 border border-gym-red/30 text-gym-red-light text-sm font-semibold hover:bg-gym-red hover:text-white transition-colors duration-150"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-gym-red/10 border border-gym-red/30 text-gym-red text-sm font-semibold hover:bg-gym-red hover:text-white transition-colors duration-150"
         >
           <span>+</span> Nuevo Miembro
         </NavLink>
@@ -150,23 +150,23 @@ export default function Sidebar() {
       {/* Admin info */}
       <div className="px-4 py-4 border-t border-gym-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gym-red/20 border border-gym-red/40 flex items-center justify-center text-xs font-bold text-gym-red-light">
+          <div className="w-8 h-8 rounded-full bg-gym-red/10 border border-gym-red/30 flex items-center justify-center text-xs font-bold text-gym-red">
             {admin?.nombre?.[0] || 'A'}
           </div>
           <div className="flex-1 min-w-0">
             <button
               onClick={() => setModalPassword(true)}
-              className="text-xs font-medium text-gray-300 truncate hover:text-white transition-colors block w-full text-left"
+              className="text-xs font-medium text-gray-700 truncate hover:text-gray-900 transition-colors block w-full text-left"
               title="Cambiar contraseña"
             >
               {admin?.nombre || 'Admin'}
             </button>
-            <p className="text-[10px] text-gray-600">Administrador</p>
+            <p className="text-[10px] text-gray-400">Administrador</p>
           </div>
           <button
             onClick={handleLogout}
             title="Cerrar sesión"
-            className="text-gray-600 hover:text-gray-300 transition-colors text-sm"
+            className="text-gray-400 hover:text-gray-700 transition-colors text-sm"
           >
             ⏻
           </button>
