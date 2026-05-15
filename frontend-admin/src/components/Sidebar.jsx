@@ -108,16 +108,12 @@ export default function Sidebar() {
   return (
     <aside className="w-60 bg-gym-sidebar border-r border-gym-border flex flex-col shrink-0">
       {/* Logo */}
-      <div className="px-5 py-6 border-b border-gym-border">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gym-red rounded-lg flex items-center justify-center text-lg font-bold">
-            R
-          </div>
-          <div>
-            <p className="text-sm font-bold text-white leading-tight">ROBERT GYM</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Club Fitness</p>
-          </div>
-        </div>
+      <div className="px-4 py-4 border-b border-gym-border flex items-center justify-center">
+        <img
+          src="/robert-gym-logo.png"
+          alt="Robert Gym"
+          className="w-[148px] h-auto mix-blend-screen drop-shadow-[0_0_18px_rgba(220,38,38,0.35)]"
+        />
       </div>
 
       {/* Navegación */}

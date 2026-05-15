@@ -7,11 +7,11 @@ import HuellaIcon from './HuellaIcon'
 
 function LogoRobertGym() {
   return (
-    <div className="mx-auto mb-7">
+    <div className="mx-auto mb-6">
       <img
         src="/robert-gym-logo.png"
         alt="Robert Gym"
-        className="w-[200px] h-auto mx-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)]"
+        className="w-[280px] h-auto mx-auto mix-blend-screen drop-shadow-[0_0_36px_rgba(220,38,38,0.55)]"
       />
     </div>
   )

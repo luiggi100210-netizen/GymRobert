@@ -26,11 +26,11 @@ export default function Login() {
       <div className="relative z-10 flex flex-col justify-center w-full max-w-[420px] min-h-screen bg-[#1c1c1c] px-12 py-16 shrink-0">
 
         {/* Logo */}
-        <div className="mb-12">
+        <div className="mb-10">
           <img
             src="/robert-gym-logo.png"
             alt="Robert Gym"
-            className="w-[180px] h-auto drop-shadow-[0_2px_16px_rgba(0,0,0,0.85)]"
+            className="w-[210px] h-auto mix-blend-screen drop-shadow-[0_0_28px_rgba(220,38,38,0.45)]"
           />
         </div>
 
