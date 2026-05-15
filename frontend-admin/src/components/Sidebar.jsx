@@ -127,7 +127,7 @@ export default function Sidebar() {
               `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
                   ? 'bg-gym-red text-white shadow-sm shadow-gym-red/30'
-                  : 'text-gray-500 hover:text-gray-800 hover:bg-black/5'
+                  : 'text-blue-900 hover:text-blue-950 hover:bg-blue-50'
               }`
             }
           >
