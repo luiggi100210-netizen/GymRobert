@@ -6,7 +6,22 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "db:init": "psql -U postgres -d robertgym -f src/db/schema.sql"
+    "db:init": "psql -U postgres -d robertgym -f src/db/schema.sql",
+    "test": "jest --coverage --forceExit"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/src/__tests__/**/*.test.js"],
+    "collectCoverageFrom": [
+      "src/utils/validaciones.js",
+      "src/middleware/auth.js",
+      "src/middleware/errorHandler.js",
+      "src/controllers/asistencia.controller.js",
+      "src/controllers/pagos.controller.js"
+    ],
+    "coverageThreshold": {
+      "global": { "lines": 80 }
+    }
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -18,6 +33,8 @@
     "pg": "^8.11.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.2.2"
   }
 }
