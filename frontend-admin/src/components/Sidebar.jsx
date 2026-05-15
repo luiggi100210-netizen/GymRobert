@@ -108,7 +108,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-gym-sidebar border-r border-gym-sidebar-border flex flex-col shrink-0 shadow-sm">
       {/* Logo */}
-      <div className="px-5 py-5 flex items-center justify-center">
+      <div className="px-5 py-5 flex items-center justify-center border-b border-gym-sidebar-border">
         <img
           src="/robert-gym-logo.png"
           alt="Robert Gym"
@@ -117,17 +117,17 @@ export default function Sidebar() {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-2 space-y-1">
+      <nav className="flex-1 px-3 py-3 space-y-0.5">
         {NAV.map(({ to, label, icon, exact }) => (
           <NavLink
             key={to}
             to={to}
             end={exact}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 ${
                 isActive
-                  ? 'bg-gym-red text-white shadow-sm shadow-gym-red/30'
-                  : 'text-blue-900 hover:text-blue-950 hover:bg-blue-50'
+                  ? 'bg-gym-red text-white font-semibold shadow-sm shadow-gym-red/30'
+                  : 'text-blue-700 font-semibold hover:text-blue-800 hover:bg-blue-50 border-l-2 border-transparent hover:border-blue-400'
               }`
             }
           >
