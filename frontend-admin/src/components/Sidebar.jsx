@@ -106,28 +106,28 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 bg-gym-sidebar border-r border-gym-border flex flex-col shrink-0">
+    <aside className="w-64 bg-gym-sidebar border-r border-gym-sidebar-border flex flex-col shrink-0 shadow-sm">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-gym-border flex items-center justify-center">
+      <div className="px-5 py-5 flex items-center justify-center">
         <img
           src="/robert-gym-logo.png"
           alt="Robert Gym"
-          className="w-[148px] h-auto drop-shadow-[0_0_12px_rgba(197,48,48,0.25)]"
+          className="w-[140px] h-auto drop-shadow-[0_2px_8px_rgba(197,48,48,0.2)]"
         />
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-2 space-y-1">
         {NAV.map(({ to, label, icon, exact }) => (
           <NavLink
             key={to}
             to={to}
             end={exact}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 ${
+              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-gym-red text-white'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-gym-red text-white shadow-sm shadow-gym-red/30'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-black/5'
               }`
             }
           >
@@ -141,27 +141,27 @@ export default function Sidebar() {
       <div className="px-3 pb-3">
         <NavLink
           to="/miembros/nuevo"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-gym-red/10 border border-gym-red/30 text-gym-red text-sm font-semibold hover:bg-gym-red hover:text-white transition-colors duration-150"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gym-red text-white text-sm font-semibold hover:bg-gym-red-dark transition-colors duration-150 shadow-sm shadow-gym-red/30"
         >
           <span>+</span> Nuevo Miembro
         </NavLink>
       </div>
 
       {/* Admin info */}
-      <div className="px-4 py-4 border-t border-gym-border">
+      <div className="px-4 py-4 border-t border-gym-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gym-red/10 border border-gym-red/30 flex items-center justify-center text-xs font-bold text-gym-red">
+          <div className="w-9 h-9 rounded-full bg-gym-red flex items-center justify-center text-xs font-bold text-white shadow-sm">
             {admin?.nombre?.[0] || 'A'}
           </div>
           <div className="flex-1 min-w-0">
             <button
               onClick={() => setModalPassword(true)}
-              className="text-xs font-medium text-gray-700 truncate hover:text-gray-900 transition-colors block w-full text-left"
+              className="text-sm font-semibold text-gray-700 truncate hover:text-gray-900 transition-colors block w-full text-left"
               title="Cambiar contraseña"
             >
               {admin?.nombre || 'Admin'}
             </button>
-            <p className="text-[10px] text-gray-400">Administrador</p>
+            <p className="text-[11px] text-gym-red font-medium">● Activo</p>
           </div>
           <button
             onClick={handleLogout}

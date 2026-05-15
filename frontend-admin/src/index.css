@@ -19,22 +19,22 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-gym-red hover:bg-gym-red-dark text-white font-semibold px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-gym-red hover:bg-gym-red-dark text-white font-semibold px-4 py-2 rounded-xl transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
   }
   .btn-ghost {
-    @apply bg-transparent hover:bg-gray-100 text-gray-600 hover:text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-150 border border-gym-border;
+    @apply bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 font-medium px-4 py-2 rounded-xl transition-colors duration-150 border border-gym-border;
   }
   .card {
-    @apply bg-gym-card border border-gym-border rounded-xl p-5 text-gray-900 shadow-sm;
+    @apply bg-gym-card border border-gym-border rounded-2xl p-5 text-gray-900 shadow-sm;
   }
   .input {
-    @apply w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-gym-red focus:ring-1 focus:ring-gym-red transition-colors;
+    @apply w-full bg-white border border-gym-border text-gray-900 rounded-xl px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:border-gym-red focus:ring-1 focus:ring-gym-red transition-colors;
   }
   .label {
-    @apply block text-xs font-medium text-gray-600 mb-1;
+    @apply block text-xs font-medium text-gray-500 mb-1;
   }
   .table-row {
-    @apply border-b border-gym-border hover:bg-gray-50 transition-colors;
+    @apply border-b border-gym-border hover:bg-amber-50/30 transition-colors;
   }
   .badge-verde    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200; }
   .badge-rojo     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200; }
