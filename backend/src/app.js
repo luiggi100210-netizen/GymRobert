@@ -15,6 +15,7 @@ const pagosRoutes      = require('./routes/pagos.routes');
 const asistenciaRoutes = require('./routes/asistencia.routes');
 const reportesRoutes   = require('./routes/reportes.routes');
 const maquinasRoutes   = require('./routes/maquinas.routes');
+const tiendaRoutes     = require('./routes/tienda.routes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/pagos',       pagosRoutes);
 app.use('/api/asistencia',  asistenciaRoutes);
 app.use('/api/reportes',    reportesRoutes);
 app.use('/api/maquinas',    maquinasRoutes);
+app.use('/api/tienda',     tiendaRoutes);
 
 // Ruta no encontrada
 app.use((req, res) => {

@@ -11,6 +11,7 @@ const NAV = [
   { to: '/reportes',   label: 'Reportes',    icon: '📊' },
   { to: '/planes',     label: 'Planes',      icon: '🏷️' },
   { to: '/maquinas',   label: 'Máquinas',    icon: '🏋️' },
+  { to: '/tienda',     label: 'Tienda',      icon: '🛍️' },
 ]
 
 function ModalCambiarPassword({ onCerrar }) {

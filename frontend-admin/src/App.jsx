@@ -12,6 +12,7 @@ import Planes         from './pages/Planes'
 import MiembroDetalle from './pages/MiembroDetalle'
 import Maquinas       from './pages/Maquinas'
 import MaquinaPublica from './pages/MaquinaPublica'
+import Tienda         from './pages/Tienda'
 
 // Ruta protegida: redirige a login si no está autenticado
 function PrivateRoute({ children }) {
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="reportes"       element={<Reportes />} />
         <Route path="planes"         element={<Planes />} />
         <Route path="maquinas"       element={<Maquinas />} />
+        <Route path="tienda"         element={<Tienda />} />
       </Route>
       {/* Página pública — accesible sin login al escanear el QR */}
       <Route path="/maquina/:id" element={<MaquinaPublica />} />
