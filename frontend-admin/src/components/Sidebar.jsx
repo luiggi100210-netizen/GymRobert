@@ -10,6 +10,7 @@ const NAV = [
   { to: '/pagos',      label: 'Pagos',       icon: '💰' },
   { to: '/reportes',   label: 'Reportes',    icon: '📊' },
   { to: '/planes',     label: 'Planes',      icon: '🏷️' },
+  { to: '/maquinas',   label: 'Máquinas',    icon: '🏋️' },
 ]
 
 function ModalCambiarPassword({ onCerrar }) {
