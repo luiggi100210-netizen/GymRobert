@@ -125,7 +125,6 @@ async function ingresosMes(req, res, next) {
         `SELECT
           COUNT(*)               AS total_pagos,
           COALESCE(SUM(monto), 0) AS total_ingresos,
-          metodo_pago,
           COALESCE(SUM(monto) FILTER (WHERE metodo_pago = 'efectivo'),    0) AS efectivo,
           COALESCE(SUM(monto) FILTER (WHERE metodo_pago = 'yape'),        0) AS yape,
           COALESCE(SUM(monto) FILTER (WHERE metodo_pago = 'plin'),        0) AS plin,

@@ -90,7 +90,7 @@ export default function App() {
           {estado === 'entrada'  && respuesta && <PantallaEntrada  respuesta={respuesta} />}
           {estado === 'salida'   && respuesta && <PantallaSalida   respuesta={respuesta} />}
           {estado === 'denegado' && respuesta && <PantallaDenegado respuesta={respuesta} />}
-          {estado === 'ignorado' && <PantallaIdle />}
+          {estado === 'ignorado' && <PantallaIdle onClickSensor={() => handleToque('FP-DEMO-001')} />}
         </div>
       </div>
 

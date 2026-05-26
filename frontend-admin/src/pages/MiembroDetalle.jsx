@@ -52,7 +52,7 @@ function ModalRenovar({ miembro, onCerrar, onRenovado }) {
   }
 
   const fechaFin = planSel && form.fecha_inicio
-    ? format(addDays(new Date(form.fecha_inicio), planSel.duracion_dias), 'dd/MM/yyyy')
+    ? format(addDays(new Date(form.fecha_inicio + 'T12:00:00'), planSel.duracion_dias), 'dd/MM/yyyy')
     : '—'
 
   const handleGuardar = async () => {
