@@ -111,3 +111,13 @@ El endpoint `POST /api/asistencia/toque` maneja automáticamente:
 3. **1er toque del día** → Registra entrada → `{ estado: 'entrada' }`
 4. **2do toque del día** → Registra salida + calcula duración → `{ estado: 'salida' }`
 5. **Ya completó visita** → `{ estado: 'ignorado' }`
+
+## Bugs corregidos
+
+### `reportes.controller.js` — columna sin GROUP BY en `ingresosMes`
+**Endpoint afectado:** `GET /api/reportes/ingresos/:mes/:anio`
+
+La columna `metodo_pago` aparecía en el `SELECT` junto con funciones de agregado (`COUNT`, `SUM`) sin cláusula `GROUP BY`. PostgreSQL rechazaba la query con:
+> `column "pagos.metodo_pago" must appear in the GROUP BY clause or be used in an aggregate function`
+
+**Corrección:** se eliminó `metodo_pago` del `SELECT`. Los totales por método se calculan correctamente mediante los filtros `FILTER (WHERE metodo_pago = '...')` que sí estaban presentes.

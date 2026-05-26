@@ -70,3 +70,10 @@ Para pantalla kiosco en producción (Windows/Linux):
    chrome.exe --kiosk http://localhost:5174
    ```
 2. Deshabilitar atajos del SO o usar un kiosco manager.
+
+## Bugs corregidos
+
+### `App.jsx` — estado `ignorado` sin prop `onClickSensor`
+`PantallaIdle` se renderizaba en el estado `ignorado` sin la prop `onClickSensor`, a diferencia del estado `idle` donde sí se pasaba. Durante los 800ms del auto-reset, el botón demo no respondía.
+
+**Corrección:** se agregó `onClickSensor={() => handleToque('FP-DEMO-001')}` al `PantallaIdle` del estado `ignorado`, dejándolo consistente con el estado `idle`.

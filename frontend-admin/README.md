@@ -41,3 +41,12 @@ npm run dev     # http://localhost:5173
 - Sidebar negro: `#111111`
 - Fondo: `#030712` (gray-950)
 - Fuente: Inter
+
+## Bugs corregidos
+
+### `NuevoMiembro.jsx` y `MiembroDetalle.jsx` — fecha de vencimiento con un día de diferencia
+El preview de la fecha de fin de membresía mostraba un día menos al esperado en la zona horaria de Perú (UTC-5).
+
+**Causa:** `new Date('YYYY-MM-DD')` parsea la fecha como UTC medianoche. En UTC-5 eso equivale al día anterior a las 7pm, por lo que `addDays` operaba sobre la fecha incorrecta.
+
+**Corrección:** se cambió a `new Date('YYYY-MM-DD' + 'T12:00:00')` para anclar al mediodía local, eliminando el desfase. La fecha guardada en el backend no estaba afectada (el cálculo se hace en SQL).
