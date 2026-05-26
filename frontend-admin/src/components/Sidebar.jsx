@@ -50,7 +50,7 @@ function ModalCambiarPassword({ onCerrar }) {
       <div className="card w-full max-w-sm space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-900">Cambiar contraseña</h2>
-          <button onClick={onCerrar} className="text-gray-400 hover:text-gray-700">✕</button>
+          <button onClick={onCerrar} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
 
         {exito ? (
@@ -108,7 +108,7 @@ export default function Sidebar({ onCerrar }) {
   }
 
   return (
-    <aside className="w-64 bg-gym-sidebar border-r border-gym-sidebar-border flex flex-col shrink-0 shadow-sm">
+    <aside className="w-64 bg-gym-sidebar border-r border-gym-sidebar-border flex flex-col shrink-0">
       {/* Logo */}
       <div className="px-5 py-5 flex items-center justify-center border-b border-gym-sidebar-border relative">
         <img
@@ -119,7 +119,7 @@ export default function Sidebar({ onCerrar }) {
         {onCerrar && (
           <button
             onClick={onCerrar}
-            className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+            className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
             aria-label="Cerrar menú"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -131,56 +131,52 @@ export default function Sidebar({ onCerrar }) {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV.map(({ to, label, icon, exact }) => (
           <NavLink
             key={to}
             to={to}
             end={exact}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 ${
-                isActive
-                  ? 'bg-gym-red text-white font-semibold shadow-sm shadow-gym-red/30'
-                  : 'text-blue-700 font-semibold hover:text-blue-800 hover:bg-blue-50 border-l-2 border-transparent hover:border-blue-400'
-              }`
+              isActive ? 'nav-item-active' : 'nav-item'
             }
           >
-            <span className="text-base w-5 text-center">{icon}</span>
+            <span className="text-base w-5 text-center shrink-0">{icon}</span>
             {label}
           </NavLink>
         ))}
       </nav>
 
       {/* Nuevo miembro CTA */}
-      <div className="px-3 pb-3">
+      <div className="px-3 pb-4">
         <NavLink
           to="/miembros/nuevo"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gym-red text-white text-sm font-semibold hover:bg-gym-red-dark transition-colors duration-150 shadow-sm shadow-gym-red/30"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-gym-red text-white text-sm font-semibold hover:bg-gym-red-dark transition-colors duration-150"
         >
-          <span>+</span> Nuevo Miembro
+          <span className="text-base">+</span> Nuevo Miembro
         </NavLink>
       </div>
 
       {/* Admin info */}
       <div className="px-4 py-4 border-t border-gym-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gym-red flex items-center justify-center text-xs font-bold text-white shadow-sm">
-            {admin?.nombre?.[0] || 'A'}
+          <div className="w-8 h-8 rounded-lg bg-gym-red flex items-center justify-center text-xs font-bold text-white shrink-0">
+            {admin?.nombre?.[0]?.toUpperCase() || 'A'}
           </div>
           <div className="flex-1 min-w-0">
             <button
               onClick={() => setModalPassword(true)}
-              className="text-sm font-semibold text-gray-700 truncate hover:text-gray-900 transition-colors block w-full text-left"
+              className="text-sm font-semibold text-slate-200 truncate hover:text-white transition-colors block w-full text-left"
               title="Cambiar contraseña"
             >
               {admin?.nombre || 'Admin'}
             </button>
-            <p className="text-[11px] text-gym-red font-medium">● Activo</p>
+            <p className="text-[11px] text-slate-500 font-medium">Administrador</p>
           </div>
           <button
             onClick={handleLogout}
             title="Cerrar sesión"
-            className="text-gray-400 hover:text-gray-700 transition-colors text-sm"
+            className="text-slate-500 hover:text-white transition-colors text-sm p-1 rounded-md hover:bg-white/10"
           >
             ⏻
           </button>

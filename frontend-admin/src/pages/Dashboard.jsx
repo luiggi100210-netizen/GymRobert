@@ -38,8 +38,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Cabecera */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Resumen general del gimnasio</p>
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+        <p className="text-sm text-slate-500 mt-0.5">Resumen general del gimnasio</p>
       </div>
 
       {/* Stats cards */}
@@ -78,7 +78,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Gráfico de barras: últimos 7 días */}
         <div className="card lg:col-span-3">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">
             Asistencias — últimos 7 días
           </h2>
           <ResponsiveContainer width="100%" height={200}>
@@ -108,7 +108,7 @@ export default function Dashboard() {
 
         {/* Proyección */}
         <div className="card lg:col-span-2 flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-gray-700">Proyección</h2>
+          <h2 className="text-sm font-semibold text-slate-700">Proyección</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500">Cobrado este mes</span>
@@ -135,7 +135,7 @@ export default function Dashboard() {
         {/* Últimos miembros */}
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-700">Miembros recientes</h2>
+            <h2 className="text-sm font-semibold text-slate-700">Miembros recientes</h2>
             <Link to="/miembros" className="text-xs text-gym-red hover:underline">
               Ver todos →
             </Link>
@@ -189,7 +189,7 @@ function VencenProximo() {
 
   return (
     <div className="card">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">Vencen en 7 días</h2>
+      <h2 className="text-sm font-semibold text-slate-700 mb-4">Vencen en 7 días</h2>
       {lista.length === 0 ? (
         <p className="text-xs text-gray-400 text-center py-4">Ninguno próximo a vencer</p>
       ) : (

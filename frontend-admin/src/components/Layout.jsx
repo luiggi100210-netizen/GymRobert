@@ -30,10 +30,10 @@ export default function Layout() {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* Header móvil con hamburguesa */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-gym-sidebar border-b border-gym-sidebar-border shrink-0">
+        <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-gym-sidebar border-b border-gym-sidebar-border shrink-0 shadow-sm">
           <button
             onClick={() => setMenuAbierto(true)}
-            className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+            className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
             aria-label="Abrir menú"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
