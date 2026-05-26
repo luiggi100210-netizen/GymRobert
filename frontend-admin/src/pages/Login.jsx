@@ -23,7 +23,7 @@ export default function Login() {
     <div className="min-h-screen flex bg-[#1a1a1a]">
 
       {/* ── Panel izquierdo: formulario ── */}
-      <div className="relative z-10 flex flex-col justify-center w-full max-w-[420px] min-h-screen bg-[#1c1c1c] px-12 py-16 shrink-0">
+      <div className="relative z-10 flex flex-col justify-center w-full lg:max-w-[420px] min-h-screen bg-[#1c1c1c] px-8 lg:px-12 py-16 shrink-0">
 
         {/* Logo */}
         <div className="mb-10">
@@ -92,7 +92,7 @@ export default function Login() {
       </div>
 
       {/* ── Panel derecho: imagen del atleta ── */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="hidden lg:block flex-1 relative overflow-hidden">
         <img
           src="/gym-hero.jpg"
           alt="Robert Gym"

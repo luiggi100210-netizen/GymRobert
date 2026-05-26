@@ -31,12 +31,12 @@ export default function Reportes() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Reportes</h1>
           <p className="text-sm text-gray-500 mt-0.5">Análisis financiero y proyecciones</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <select className="input w-auto text-sm" value={mes} onChange={(e) => setMes(Number(e.target.value))}>
             {MESES.map((m, i) => (
               <option key={i} value={i + 1}>{m}</option>

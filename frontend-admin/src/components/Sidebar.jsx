@@ -96,7 +96,7 @@ function ModalCambiarPassword({ onCerrar }) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onCerrar }) {
   const { admin, logout } = useAuth()
   const navigate = useNavigate()
   const [modalPassword, setModalPassword] = useState(false)
@@ -109,12 +109,24 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-gym-sidebar border-r border-gym-sidebar-border flex flex-col shrink-0 shadow-sm">
       {/* Logo */}
-      <div className="px-5 py-5 flex items-center justify-center border-b border-gym-sidebar-border">
+      <div className="px-5 py-5 flex items-center justify-center border-b border-gym-sidebar-border relative">
         <img
           src="/robert-gym-logo.png"
           alt="Robert Gym"
           className="w-[140px] h-auto drop-shadow-[0_2px_8px_rgba(197,48,48,0.2)]"
         />
+        {onCerrar && (
+          <button
+            onClick={onCerrar}
+            className="lg:hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+            aria-label="Cerrar menú"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Navegación */}

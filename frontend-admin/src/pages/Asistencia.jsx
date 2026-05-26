@@ -198,7 +198,7 @@ export default function Asistencia() {
       </div>
 
       {/* Pestañas */}
-      <div className="flex gap-1 bg-gray-900 border border-gym-border rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-900 border border-gym-border rounded-xl p-1 w-fit max-w-full overflow-x-auto">
         {PESTANAS.map((t, i) => (
           <button
             key={i}
@@ -245,8 +245,8 @@ function TabHoy() {
   return (
     <div className="space-y-4">
       {/* Stats + botón */}
-      <div className="flex items-start gap-4">
-        <div className="grid grid-cols-3 gap-3 flex-1">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
+        <div className="grid grid-cols-3 gap-3 flex-1 w-full">
           <div className="card text-center">
             <p className="text-2xl font-bold text-white">{lista.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">Total hoy</p>
@@ -262,7 +262,7 @@ function TabHoy() {
         </div>
         <button
           onClick={() => setModalManual(true)}
-          className="btn-primary text-sm shrink-0 mt-1"
+          className="btn-primary text-sm shrink-0 sm:mt-1 w-full sm:w-auto"
         >
           + Registrar manual
         </button>
@@ -272,6 +272,7 @@ function TabHoy() {
         {cargando ? <Spinner /> : lista.length === 0 ? (
           <p className="text-center text-gray-600 py-12">Sin asistencias registradas hoy</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-500 border-b border-gym-border bg-black/20">
@@ -301,6 +302,7 @@ function TabHoy() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -364,6 +366,7 @@ function TabHistorial() {
         {cargando ? <Spinner /> : lista.length === 0 ? (
           <p className="text-center text-gray-600 py-12">Sin registros para esta fecha</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-500 border-b border-gym-border bg-black/20">
@@ -387,6 +390,7 @@ function TabHistorial() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
