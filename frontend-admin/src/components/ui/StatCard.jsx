@@ -10,7 +10,7 @@ export default function StatCard({ titulo, valor, sub, icono, color = 'red' }) {
   const { bar, val } = accents[color] || accents.red
 
   return (
-    <div className="bg-white border border-gym-border rounded-xl p-5 shadow-card relative overflow-hidden group hover:shadow-card-hover transition-shadow duration-200">
+    <div className="bg-white border border-gym-border rounded-xl p-5 relative overflow-hidden group transition-shadow duration-200" style={{boxShadow:'0 1px 3px 0 rgb(0 0 0/0.07),0 1px 2px -1px rgb(0 0 0/0.07)'}}>
       {/* Accent bar top */}
       <div className={`absolute top-0 left-0 right-0 h-0.5 ${bar}`} />
 
