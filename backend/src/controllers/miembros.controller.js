@@ -246,16 +246,19 @@ async function buscarReniec(req, res, next) {
     if (!process.env.RENIEC_TOKEN) {
       return res.status(503).json({ error: 'Servicio RENIEC no configurado' });
     }
-    const response = await fetch(`https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`, {
+    const response = await fetch(`https://api.decolecta.com/v1/reniec/dni?numero=${dni}`, {
       headers: { Authorization: `Bearer ${process.env.RENIEC_TOKEN}` },
     });
     if (!response.ok) {
       return res.status(404).json({ error: 'DNI no encontrado en RENIEC' });
     }
     const data = await response.json();
+    if (data.message) {
+      return res.status(404).json({ error: 'DNI no encontrado en RENIEC' });
+    }
     res.json({
-      nombres:   data.nombres,
-      apellidos: `${data.apellidoPaterno} ${data.apellidoMaterno}`.trim(),
+      nombres:   data.first_name,
+      apellidos: `${data.first_last_name} ${data.second_last_name}`.trim(),
     });
   } catch (err) {
     next(err);
