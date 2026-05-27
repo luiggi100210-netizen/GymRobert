@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { addDays, format } from 'date-fns'
 import api from '../api/client'
@@ -51,23 +51,38 @@ export default function NuevoMiembro() {
     })
   }, [editarId])
 
-  const buscarDni = async () => {
-    if (form.dni.length !== 8) return
+  const buscarDni = useCallback(async (dni) => {
+    if (dni.length !== 8) return
     setBuscandoDni(true)
+    setError('')
     try {
-      const { data } = await api.get(`/miembros/dni/${form.dni}`)
-      setForm((f) => ({
-        ...f,
-        nombres:  data.nombres,
-        apellidos: data.apellidos,
-        telefono: data.telefono || f.telefono,
-      }))
+      // 1. Buscar en BD interna (miembro ya registrado)
+      try {
+        const { data } = await api.get(`/miembros/dni/${dni}`)
+        setForm((f) => ({
+          ...f,
+          nombres:   data.nombres,
+          apellidos: data.apellidos,
+          telefono:  data.telefono || f.telefono,
+        }))
+        return
+      } catch {
+        // No está en BD — consultar RENIEC
+      }
+      // 2. Consultar RENIEC para autocompletar nombre/apellidos
+      const { data } = await api.get(`/miembros/reniec/${dni}`)
+      setForm((f) => ({ ...f, nombres: data.nombres, apellidos: data.apellidos }))
     } catch {
-      // DNI no encontrado — es un miembro nuevo, ignorar
+      // DNI no encontrado en ninguna fuente — el usuario escribe manualmente
     } finally {
       setBuscandoDni(false)
     }
-  }
+  }, [])
+
+  // Auto-dispara cuando se escriben exactamente 8 dígitos
+  useEffect(() => {
+    if (form.dni.length === 8 && !esEdicion) buscarDni(form.dni)
+  }, [form.dni, esEdicion, buscarDni])
 
   const seleccionarPlan = (plan) => {
     setPlanSel(plan)
@@ -154,27 +169,26 @@ export default function NuevoMiembro() {
           {/* DNI con búsqueda */}
           <div>
             <label className="label">DNI *</label>
-            <div className="flex gap-2">
+            <div className="relative">
               <input
                 type="text"
-                className="input"
+                inputMode="numeric"
+                className="input pr-8"
                 placeholder="12345678"
                 maxLength={8}
                 value={form.dni}
-                onChange={(e) => set('dni', e.target.value)}
+                onChange={(e) => set('dni', e.target.value.replace(/\D/g, '').slice(0, 8))}
                 disabled={esEdicion}
               />
-              {!esEdicion && (
-                <button
-                  type="button"
-                  onClick={buscarDni}
-                  disabled={form.dni.length !== 8 || buscandoDni}
-                  className="btn-ghost text-xs whitespace-nowrap"
-                >
-                  {buscandoDni ? '...' : 'Buscar'}
-                </button>
+              {buscandoDni && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 animate-pulse">
+                  ⟳
+                </span>
               )}
             </div>
+            {buscandoDni && (
+              <p className="text-xs text-gray-400 mt-1">Consultando RENIEC...</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

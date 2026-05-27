@@ -235,6 +235,33 @@ async function editarMiembro(req, res, next) {
   }
 }
 
+// GET /api/miembros/reniec/:dni
+// Proxy hacia apis.net.pe para autocompletar nombre/apellidos desde RENIEC
+async function buscarReniec(req, res, next) {
+  try {
+    const { dni } = req.params;
+    if (!/^\d{8}$/.test(dni)) {
+      return res.status(400).json({ error: 'DNI debe tener exactamente 8 dígitos' });
+    }
+    if (!process.env.RENIEC_TOKEN) {
+      return res.status(503).json({ error: 'Servicio RENIEC no configurado' });
+    }
+    const response = await fetch(`https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`, {
+      headers: { Authorization: `Bearer ${process.env.RENIEC_TOKEN}` },
+    });
+    if (!response.ok) {
+      return res.status(404).json({ error: 'DNI no encontrado en RENIEC' });
+    }
+    const data = await response.json();
+    res.json({
+      nombres:   data.nombres,
+      apellidos: `${data.apellidoPaterno} ${data.apellidoMaterno}`.trim(),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // GET /api/miembros/dni/:dni
 // Buscar por DNI para autollenado de formulario
 async function buscarPorDni(req, res, next) {
@@ -257,4 +284,4 @@ async function buscarPorDni(req, res, next) {
   }
 }
 
-module.exports = { listarMiembros, obtenerMiembro, crearMiembro, editarMiembro, buscarPorDni };
+module.exports = { listarMiembros, obtenerMiembro, crearMiembro, editarMiembro, buscarPorDni, buscarReniec };

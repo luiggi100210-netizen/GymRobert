@@ -6,14 +6,16 @@ const {
   obtenerMiembro,
   crearMiembro,
   editarMiembro,
-  buscarPorDni
+  buscarPorDni,
+  buscarReniec,
 } = require('../controllers/miembros.controller');
 
 // Todas las rutas requieren autenticación
 router.use(verificarToken);
 
-// IMPORTANTE: la ruta con parámetro específico va ANTES de /:id
-router.get('/dni/:dni', buscarPorDni);      // GET /api/miembros/dni/:dni
+// IMPORTANTE: rutas con segmentos fijos van ANTES de /:id
+router.get('/reniec/:dni', buscarReniec);   // GET /api/miembros/reniec/:dni
+router.get('/dni/:dni',    buscarPorDni);   // GET /api/miembros/dni/:dni
 router.get('/',         listarMiembros);    // GET /api/miembros
 router.get('/:id',      obtenerMiembro);   // GET /api/miembros/:id
 router.post('/',        crearMiembro);     // POST /api/miembros

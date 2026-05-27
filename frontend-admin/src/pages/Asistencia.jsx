@@ -40,6 +40,23 @@ function ModalRegistroManual({ onCerrar, onRegistrado }) {
       .finally(() => setBuscando(false))
   }, [])
 
+  // Cuando el input tiene exactamente 8 dígitos, busca por DNI y auto-selecciona si hay match
+  const buscarPorDni = useCallback((dni) => {
+    setBuscando(true)
+    api.get('/miembros', { params: { buscar: dni } })
+      .then(({ data }) => {
+        const exacto = data.data.find((m) => m.dni === dni)
+        if (exacto) {
+          setSeleccionado(exacto)
+          setBuscar(`${exacto.nombres} ${exacto.apellidos}`)
+          setMiembros([])
+        } else {
+          setMiembros(data.data.slice(0, 6))
+        }
+      })
+      .finally(() => setBuscando(false))
+  }, [])
+
   const handleBuscar = (e) => {
     const q = e.target.value
     setBuscar(q)
@@ -47,7 +64,11 @@ function ModalRegistroManual({ onCerrar, onRegistrado }) {
     setResultado(null)
     setError('')
     clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => buscarMiembros(q), 300)
+    if (/^\d{8}$/.test(q)) {
+      timerRef.current = setTimeout(() => buscarPorDni(q), 300)
+    } else {
+      timerRef.current = setTimeout(() => buscarMiembros(q), 300)
+    }
   }
 
   const handleSeleccionar = (m) => {
