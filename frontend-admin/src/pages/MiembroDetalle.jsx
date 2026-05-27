@@ -174,15 +174,77 @@ function ModalRenovar({ miembro, onCerrar, onRenovado }) {
   )
 }
 
+// Modal para eliminar pago con contraseña
+function ModalEliminarPago({ pago, onCerrar, onEliminado }) {
+  const [password, setPassword] = useState('')
+  const [eliminando, setEliminando] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleEliminar = async () => {
+    if (!password) { setError('Ingresa tu contraseña'); return }
+    setEliminando(true)
+    setError('')
+    try {
+      await api.delete(`/pagos/${pago.id}`, { data: { password } })
+      onEliminado()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al eliminar')
+    } finally {
+      setEliminando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="card w-full max-w-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-gray-900">Eliminar registro de pago</h2>
+          <button onClick={onCerrar} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">
+          <strong>Plan:</strong> {pago.plan_nombre} — <strong>Monto:</strong> S/ {parseFloat(pago.monto).toFixed(2)}<br />
+          <strong>Fecha:</strong> {new Date(pago.fecha_pago).toLocaleDateString('es-PE')}
+        </div>
+        <div>
+          <label className="label">Contraseña de administrador</label>
+          <input
+            type="password"
+            className="input"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleEliminar() }}
+            autoFocus
+          />
+        </div>
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+        )}
+        <div className="flex gap-3">
+          <button onClick={onCerrar} className="btn-ghost flex-1">Cancelar</button>
+          <button
+            onClick={handleEliminar}
+            disabled={eliminando || !password}
+            className="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {eliminando ? 'Eliminando...' : 'Eliminar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MiembroDetalle() {
   const { id }      = useParams()
   const navigate    = useNavigate()
   const [miembro, setMiembro]     = useState(null)
   const [cargando, setCargando]   = useState(true)
   const [error, setError]         = useState('')
-  const [modalRenovar, setModalRenovar]       = useState(false)
-  const [renovado, setRenovado]               = useState(false)
-  const [cambiandoEstado, setCambiandoEstado] = useState(false)
+  const [modalRenovar, setModalRenovar]           = useState(false)
+  const [renovado, setRenovado]                   = useState(false)
+  const [cambiandoEstado, setCambiandoEstado]     = useState(false)
+  const [modalEliminarPago, setModalEliminarPago] = useState(null) // pago a eliminar
 
   const cargar = () => {
     setCargando(true)
@@ -415,6 +477,7 @@ export default function MiembroDetalle() {
                   <th className="text-left px-4 py-3 font-medium">Método</th>
                   <th className="text-left px-4 py-3 font-medium">Fecha pago</th>
                   <th className="text-left px-4 py-3 font-medium">Comprobante</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -441,6 +504,15 @@ export default function MiembroDetalle() {
                     <td className="px-4 py-3 text-gray-600 text-xs">
                       {p.comprobante || '—'}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => setModalEliminarPago(p)}
+                        title="Eliminar este registro"
+                        className="text-gray-300 hover:text-red-500 transition-colors text-xs px-1.5 py-0.5 rounded hover:bg-red-50"
+                      >
+                        🗑
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -455,6 +527,15 @@ export default function MiembroDetalle() {
           miembro={miembro}
           onCerrar={() => setModalRenovar(false)}
           onRenovado={handleRenovado}
+        />
+      )}
+
+      {/* Modal eliminar pago */}
+      {modalEliminarPago && (
+        <ModalEliminarPago
+          pago={modalEliminarPago}
+          onCerrar={() => setModalEliminarPago(null)}
+          onEliminado={() => { setModalEliminarPago(null); cargar() }}
         />
       )}
     </div>

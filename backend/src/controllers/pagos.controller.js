@@ -1,5 +1,6 @@
 // Controlador de pagos
-const pool = require('../config/database');
+const pool   = require('../config/database');
+const bcrypt = require('bcryptjs');
 
 // GET /api/pagos
 // Historial de pagos con filtro opcional por mes/año
@@ -74,4 +75,42 @@ async function registrarPago(req, res, next) {
   }
 }
 
-module.exports = { listarPagos, registrarPago };
+// DELETE /api/pagos/:id
+// Eliminar un pago del historial — requiere contraseña del admin
+async function eliminarPago(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Se requiere la contraseña para eliminar' });
+    }
+
+    // Verificar contraseña del admin autenticado
+    const { rows: adminRows } = await pool.query(
+      'SELECT password_hash FROM admins WHERE id = $1',
+      [req.admin.id]
+    );
+    if (adminRows.length === 0) {
+      return res.status(401).json({ error: 'Administrador no encontrado' });
+    }
+    const valido = await bcrypt.compare(password, adminRows[0].password_hash);
+    if (!valido) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    const { rows } = await pool.query(
+      'DELETE FROM pagos WHERE id = $1 RETURNING id',
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+
+    res.json({ mensaje: 'Pago eliminado correctamente' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listarPagos, registrarPago, eliminarPago };
