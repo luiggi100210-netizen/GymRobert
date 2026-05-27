@@ -16,7 +16,7 @@ const ICONOS_PAGO = {
 }
 
 function estadoMiembro(diasRestantes, estadoMem) {
-  if (!estadoMem || estadoMem === 'vencida') return 'vencido'
+  if (!estadoMem || estadoMem === 'vencida' || diasRestantes == null || diasRestantes < 0) return 'vencido'
   if (diasRestantes <= 7) return 'por vencer'
   return 'activo'
 }

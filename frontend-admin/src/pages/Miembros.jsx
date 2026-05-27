@@ -6,7 +6,7 @@ import Spinner from '../components/ui/Spinner'
 import { linkWhatsapp } from '../utils/whatsapp'
 
 function estadoMiembro(diasRestantes, estadoMem) {
-  if (!estadoMem || estadoMem === 'vencida') return 'vencido'
+  if (!estadoMem || estadoMem === 'vencida' || diasRestantes == null || diasRestantes < 0) return 'vencido'
   if (diasRestantes <= 7) return 'por vencer'
   return 'activo'
 }
@@ -209,11 +209,15 @@ export default function Miembros() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-bold ${
-                          m.dias_restantes <= 0 ? 'text-red-500' :
+                          m.dias_restantes == null || m.dias_restantes < 0 ? 'text-red-500' :
                           m.dias_restantes <= 7 ? 'text-amber-500' :
                           'text-gray-600'
                         }`}>
-                          {m.dias_restantes != null ? `${m.dias_restantes}d` : '—'}
+                          {m.dias_restantes == null
+                            ? '—'
+                            : m.dias_restantes < 0
+                            ? `vencido`
+                            : `${m.dias_restantes}d`}
                         </span>
                       </td>
                       <td className="px-4 py-3">

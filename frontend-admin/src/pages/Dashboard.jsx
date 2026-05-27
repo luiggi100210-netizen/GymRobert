@@ -14,7 +14,7 @@ const sol = (n) => `S/ ${parseFloat(n || 0).toFixed(2)}`
 
 // Determina el estado visual del miembro según días restantes
 function estadoMiembro(dias, estadoMem) {
-  if (!estadoMem || estadoMem === 'vencida') return 'vencido'
+  if (!estadoMem || estadoMem === 'vencida' || dias == null || dias < 0) return 'vencido'
   if (dias <= 7) return 'por vencer'
   return 'activo'
 }

@@ -16,13 +16,18 @@ async function listarMiembros(req, res, next) {
         m.id, m.dni, m.nombres, m.apellidos, m.telefono,
         m.huella_id, m.estado, m.fecha_registro,
         mem.id          AS membresia_id,
+        mem.plan_id,
         mem.fecha_inicio, mem.fecha_fin,
-        mem.estado      AS membresia_estado,
+        CASE
+          WHEN mem.fecha_fin IS NULL     THEN mem.estado
+          WHEN mem.fecha_fin < CURRENT_DATE THEN 'vencida'
+          ELSE mem.estado
+        END             AS membresia_estado,
         p.nombre        AS plan_nombre,
         p.precio        AS plan_precio,
         p.duracion_dias,
-        GREATEST(0, mem.fecha_fin - CURRENT_DATE) AS dias_restantes,
-        COUNT(*) OVER()                            AS total_count
+        mem.fecha_fin - CURRENT_DATE    AS dias_restantes,
+        COUNT(*) OVER()                 AS total_count
       FROM miembros m
       LEFT JOIN LATERAL (
         SELECT * FROM membresias
@@ -84,10 +89,14 @@ async function obtenerMiembro(req, res, next) {
         mem.id          AS membresia_id,
         mem.plan_id,
         mem.fecha_inicio, mem.fecha_fin,
-        mem.estado      AS membresia_estado,
+        CASE
+          WHEN mem.fecha_fin IS NULL        THEN mem.estado
+          WHEN mem.fecha_fin < CURRENT_DATE THEN 'vencida'
+          ELSE mem.estado
+        END             AS membresia_estado,
         p.nombre        AS plan_nombre,
         p.precio        AS plan_precio,
-        GREATEST(0, mem.fecha_fin - CURRENT_DATE) AS dias_restantes
+        mem.fecha_fin - CURRENT_DATE AS dias_restantes
        FROM miembros m
        LEFT JOIN LATERAL (
          SELECT * FROM membresias WHERE miembro_id = m.id ORDER BY fecha_fin DESC LIMIT 1
