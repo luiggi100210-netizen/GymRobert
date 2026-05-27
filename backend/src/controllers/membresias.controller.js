@@ -159,6 +159,8 @@ async function actualizarMembresia(req, res, next) {
 
 // GET /api/membresias/vencidos
 // Miembros con membresía vencida (para avisos de reactivación)
+// Incluye tanto las marcadas 'vencida' en BD como las que vencieron por fecha
+// (estado sigue 'activa' en BD pero fecha_fin ya pasó — no han renovado)
 async function obtenerVencidos(req, res, next) {
   try {
     const { rows } = await pool.query(
@@ -169,17 +171,17 @@ async function obtenerVencidos(req, res, next) {
         CURRENT_DATE - mem.fecha_fin AS dias_vencido,
         p.nombre AS plan_nombre,
         p.precio
-       FROM membresias mem
-       JOIN miembros m ON mem.miembro_id = m.id
-       JOIN planes   p ON mem.plan_id    = p.id
-       WHERE mem.estado = 'vencida'
-         AND mem.id = (
-           SELECT id FROM membresias m2
-           WHERE m2.miembro_id = m.id
-           ORDER BY fecha_fin DESC LIMIT 1
-         )
+       FROM miembros m
+       JOIN LATERAL (
+         SELECT * FROM membresias m2
+         WHERE m2.miembro_id = m.id
+         ORDER BY fecha_fin DESC
+         LIMIT 1
+       ) mem ON true
+       JOIN planes p ON mem.plan_id = p.id
+       WHERE (mem.estado = 'vencida' OR mem.fecha_fin < CURRENT_DATE)
        ORDER BY mem.fecha_fin DESC
-       LIMIT 100`
+       LIMIT 200`
     );
     res.json(rows);
   } catch (err) {

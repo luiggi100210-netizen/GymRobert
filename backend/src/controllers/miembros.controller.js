@@ -207,6 +207,10 @@ async function crearMiembro(req, res, next) {
     });
   } catch (err) {
     await client.query('ROLLBACK');
+    // DNI duplicado — constraint UNIQUE en tabla miembros
+    if (err.code === '23505' && err.constraint?.includes('dni')) {
+      return res.status(409).json({ error: 'Ya existe un miembro con ese DNI' });
+    }
     next(err);
   } finally {
     client.release();
@@ -221,17 +225,17 @@ async function editarMiembro(req, res, next) {
 
     const { rows } = await pool.query(
       `UPDATE miembros SET
-        nombres          = COALESCE($1, nombres),
-        apellidos        = COALESCE($2, apellidos),
-        telefono         = COALESCE($3, telefono),
-        fecha_nacimiento = COALESCE($4, fecha_nacimiento),
-        huella_id        = COALESCE($5, huella_id),
-        estado           = COALESCE($6, estado)
+        nombres          = CASE WHEN $1 IS NOT NULL THEN $1 ELSE nombres END,
+        apellidos        = CASE WHEN $2 IS NOT NULL THEN $2 ELSE apellidos END,
+        telefono         = $3,
+        fecha_nacimiento = CASE WHEN $4 IS NOT NULL THEN $4 ELSE fecha_nacimiento END,
+        huella_id        = CASE WHEN $5 IS NOT NULL THEN $5 ELSE huella_id END,
+        estado           = CASE WHEN $6 IS NOT NULL THEN $6 ELSE estado END
        WHERE id = $7 RETURNING *`,
       [
         nombres   ? nombres.toUpperCase()   : null,
         apellidos ? apellidos.toUpperCase() : null,
-        telefono, fecha_nacimiento, huella_id, estado, id
+        telefono || null, fecha_nacimiento || null, huella_id || null, estado || null, id
       ]
     );
 

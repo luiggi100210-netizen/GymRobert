@@ -24,8 +24,8 @@ async function crearProducto(req, res, next) {
       return res.status(400).json({ error: 'Stock inválido' });
 
     const { rows } = await pool.query(
-      `INSERT INTO productos_tienda (nombre, precio, stock, foto_url)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
+      `INSERT INTO productos_tienda (nombre, precio, stock, foto_url, activo)
+       VALUES ($1, $2, $3, $4, true) RETURNING *`,
       [nombre, precio, parseInt(stock), foto_url || null]
     );
     res.status(201).json(rows[0]);

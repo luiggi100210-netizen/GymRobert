@@ -79,8 +79,12 @@ async function dashboard(req, res, next) {
         `SELECT
           m.id, m.dni, m.nombres, m.apellidos, m.estado, m.fecha_registro,
           mem.fecha_fin, p.nombre AS plan_nombre,
-          mem.estado AS membresia_estado,
-          GREATEST(0, mem.fecha_fin - CURRENT_DATE) AS dias_restantes
+          CASE
+            WHEN mem.fecha_fin IS NULL        THEN mem.estado
+            WHEN mem.fecha_fin < CURRENT_DATE THEN 'vencida'
+            ELSE mem.estado
+          END AS membresia_estado,
+          mem.fecha_fin - CURRENT_DATE AS dias_restantes
          FROM miembros m
          LEFT JOIN LATERAL (
            SELECT * FROM membresias WHERE miembro_id = m.id ORDER BY fecha_fin DESC LIMIT 1

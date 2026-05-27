@@ -25,9 +25,16 @@ function estadoMiembro(diasRestantes, estadoMem) {
 function ModalRenovar({ miembro, onCerrar, onRenovado }) {
   const [planes, setPlanes]   = useState([])
   const [planSel, setPlanSel] = useState(null)
+
+  // Si el miembro tiene días restantes > 0, sugerir inicio el día siguiente al vencimiento
+  // para no quitarle los días que ya pagó
+  const fechaInicioSugerida = miembro.dias_restantes > 0 && miembro.fecha_fin
+    ? format(addDays(new Date(miembro.fecha_fin + 'T12:00:00'), 1), 'yyyy-MM-dd')
+    : format(new Date(), 'yyyy-MM-dd')
+
   const [form, setForm]       = useState({
     plan_id:      '',
-    fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
+    fecha_inicio: fechaInicioSugerida,
     metodo_pago:  'efectivo',
     comprobante:  '',
   })
@@ -108,6 +115,16 @@ function ModalRenovar({ miembro, onCerrar, onRenovado }) {
             value={form.fecha_inicio}
             onChange={(e) => setForm({ ...form, fecha_inicio: e.target.value })}
           />
+          {miembro.dias_restantes > 0 && form.fecha_inicio === fechaInicioSugerida && (
+            <p className="text-xs text-emerald-600 mt-1">
+              El miembro aún tiene <strong>{miembro.dias_restantes} días</strong> vigentes. La nueva membresía empezará el día que vence la actual para no perder esos días.
+            </p>
+          )}
+          {miembro.dias_restantes > 0 && form.fecha_inicio !== fechaInicioSugerida && (
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ El miembro aún tiene {miembro.dias_restantes} días vigentes. Si cambias la fecha de inicio, podría perder esos días.
+            </p>
+          )}
           {planSel && (
             <p className="text-xs text-gray-500 mt-1">
               Vence el: <span className="text-amber-400 font-medium">{fechaFin}</span>
@@ -382,11 +399,14 @@ export default function MiembroDetalle() {
         </div>
         <div className="card text-center">
           <p className={`text-2xl font-bold ${
-            miembro.dias_restantes <= 0 ? 'text-red-400' :
-            miembro.dias_restantes <= 7 ? 'text-amber-400' :
+            miembro.dias_restantes == null ? 'text-gray-400' :
+            miembro.dias_restantes < 0    ? 'text-red-400' :
+            miembro.dias_restantes <= 7   ? 'text-amber-400' :
             'text-emerald-400'
           }`}>
-            {miembro.dias_restantes ?? '—'}
+            {miembro.dias_restantes == null ? '—' :
+             miembro.dias_restantes < 0     ? 'Vencido' :
+             miembro.dias_restantes}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Días restantes</p>
         </div>
