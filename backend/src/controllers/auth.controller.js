@@ -1,7 +1,10 @@
 // Controlador de autenticación
 const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
+const crypto = require('crypto');
 const pool   = require('../config/database');
+
+const MAX_SESIONES = 4;
 
 // POST /api/auth/login
 async function login(req, res, next) {
@@ -12,7 +15,6 @@ async function login(req, res, next) {
       return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
     }
 
-    // Buscar admin en la base de datos
     const { rows } = await pool.query(
       'SELECT * FROM admin WHERE username = $1',
       [username]
@@ -29,17 +31,51 @@ async function login(req, res, next) {
       return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
-    // Generar token JWT
+    // Si ya hay MAX_SESIONES activas, cerrar la más antigua
+    const { rows: sesiones } = await pool.query(
+      'SELECT id FROM admin_sesiones WHERE admin_id = $1 ORDER BY created_at ASC',
+      [admin.id]
+    );
+    if (sesiones.length >= MAX_SESIONES) {
+      await pool.query(
+        'DELETE FROM admin_sesiones WHERE id = $1',
+        [sesiones[0].id]
+      );
+    }
+
+    // Generar token con jti único para identificar esta sesión
+    const jti = crypto.randomUUID();
     const token = jwt.sign(
-      { id: admin.id, username: admin.username },
+      { id: admin.id, username: admin.username, jti },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
     );
 
+    await pool.query(
+      'INSERT INTO admin_sesiones (admin_id, jti) VALUES ($1, $2)',
+      [admin.id, jti]
+    );
+
     res.json({
       token,
-      admin: { id: admin.id, username: admin.username, nombre: admin.nombre }
+      admin:     { id: admin.id, username: admin.username, nombre: admin.nombre },
+      sesiones:  sesiones.length >= MAX_SESIONES
+                   ? { cerrada: true, mensaje: 'Se cerró la sesión más antigua' }
+                   : null,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/auth/logout
+async function logout(req, res, next) {
+  try {
+    const { jti } = req.admin;
+    if (jti) {
+      await pool.query('DELETE FROM admin_sesiones WHERE jti = $1', [jti]);
+    }
+    res.json({ mensaje: 'Sesión cerrada correctamente' });
   } catch (err) {
     next(err);
   }
@@ -78,4 +114,4 @@ async function cambiarPassword(req, res, next) {
   }
 }
 
-module.exports = { login, cambiarPassword };
+module.exports = { login, logout, cambiarPassword };

@@ -26,7 +26,12 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch {
+      // Si falla igual cerramos sesión local
+    }
     localStorage.removeItem('gym_token')
     localStorage.removeItem('gym_admin')
     setAdmin(null)
