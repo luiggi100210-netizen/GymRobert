@@ -82,6 +82,7 @@ async function obtenerMiembro(req, res, next) {
       `SELECT
         m.*,
         mem.id          AS membresia_id,
+        mem.plan_id,
         mem.fecha_inicio, mem.fecha_fin,
         mem.estado      AS membresia_estado,
         p.nombre        AS plan_nombre,

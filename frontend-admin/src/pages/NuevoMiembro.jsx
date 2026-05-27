@@ -38,9 +38,11 @@ export default function NuevoMiembro() {
 
   // Si es edición, cargar datos del miembro + membresía activa
   useEffect(() => {
-    if (!editarId) return
+    if (!editarId || planes.length === 0) return
     api.get(`/miembros/${editarId}`).then(({ data }) => {
-      const planActual = planes.find((p) => p.nombre === data.plan_nombre)
+      // Buscar plan por ID (más confiable) o por nombre como respaldo
+      const planActual = planes.find((p) => p.id === data.plan_id)
+        || planes.find((p) => p.nombre === data.plan_nombre)
       if (planActual) setPlanSel(planActual)
       setForm((f) => ({
         ...f,
@@ -51,10 +53,10 @@ export default function NuevoMiembro() {
         fecha_nacimiento: data.fecha_nacimiento?.split('T')[0] || '',
         huella_id:        data.huella_id || '',
         membresia_id:     data.membresia_id || '',
-        plan_id:          planActual?.id || f.plan_id,
+        plan_id:          planActual?.id || '',
         fecha_inicio:     data.fecha_inicio?.split('T')[0] || f.fecha_inicio,
       }))
-    })
+    }).catch(() => setError('No se pudo cargar los datos del miembro'))
   }, [editarId, planes])
 
   const buscarDni = useCallback(async (dni) => {
@@ -98,17 +100,23 @@ export default function NuevoMiembro() {
   const set = (campo, valor) => setForm((f) => ({ ...f, [campo]: valor }))
 
   const handleSubmit = async () => {
+    // Validación básica
+    if (!form.nombres.trim() || !form.apellidos.trim()) {
+      setError('Nombres y apellidos son obligatorios')
+      return
+    }
     setGuardando(true)
     setError('')
     try {
       if (esEdicion) {
         await api.put(`/miembros/${editarId}`, {
-          nombres:          form.nombres,
-          apellidos:        form.apellidos,
-          telefono:         form.telefono,
+          nombres:          form.nombres.trim(),
+          apellidos:        form.apellidos.trim(),
+          telefono:         form.telefono.trim() || null,
           fecha_nacimiento: form.fecha_nacimiento || null,
-          huella_id:        form.huella_id || null,
+          huella_id:        form.huella_id.trim() || null,
         })
+        // Solo actualizar membresía si hay una activa y se cambió algo
         if (form.membresia_id && form.plan_id && form.fecha_inicio) {
           await api.put(`/membresias/${form.membresia_id}`, {
             plan_id:      form.plan_id,
@@ -269,7 +277,13 @@ export default function NuevoMiembro() {
             </button>
           )}
 
-          {esEdicion && planes.length > 0 && (
+          {esEdicion && !form.membresia_id && planes.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+              ⚠️ Este miembro no tiene membresía activa. Puedes renovarla desde su perfil.
+            </div>
+          )}
+
+          {esEdicion && form.membresia_id && planes.length > 0 && (
             <div className="space-y-3 border-t border-gym-border pt-4">
               <h2 className="text-sm font-semibold text-gray-700">Membresía activa</h2>
               <div className="grid grid-cols-3 gap-2">
@@ -312,12 +326,22 @@ export default function NuevoMiembro() {
             </div>
           )}
 
+          {esEdicion && error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+
           {esEdicion && (
             <div className="flex gap-3 pt-2">
               <button onClick={() => navigate('/miembros')} className="btn-ghost flex-1">
                 Cancelar
               </button>
-              <button onClick={handleSubmit} disabled={guardando} className="btn-primary flex-1">
+              <button
+                onClick={handleSubmit}
+                disabled={guardando || !form.nombres.trim() || !form.apellidos.trim()}
+                className="btn-primary flex-1"
+              >
                 {guardando ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
