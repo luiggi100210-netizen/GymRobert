@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import api from '../api/client'
 import Spinner from '../components/ui/Spinner'
 
+function youtubeId(url) {
+  if (!url) return null
+  const m = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : null
+}
+
 function qrUrl(id) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
     window.location.origin + '/maquina/' + id
@@ -108,10 +114,30 @@ export default function Maquinas() {
                   <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{m.descripcion}</p>
                 )}
                 <div className="flex gap-2 mt-1.5">
-                  {m.pdf_url   && <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-medium">PDF</span>}
-                  {m.video_url && <span className="text-[10px] bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.5 rounded-full font-medium">YouTube</span>}
+                  {m.pdf_url && <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-medium">PDF</span>}
                 </div>
               </div>
+
+              {/* Preview YouTube */}
+              {youtubeId(m.video_url) && (
+                <a
+                  href={m.video_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="relative block rounded-xl overflow-hidden group"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${youtubeId(m.video_url)}/hqdefault.jpg`}
+                    alt="Video"
+                    className="w-full h-32 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+                    <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white text-sm ml-0.5">▶</span>
+                    </div>
+                  </div>
+                </a>
+              )}
 
               {/* QR + enlace */}
               <div className="flex items-center gap-3 border-t border-gray-100 pt-3">
