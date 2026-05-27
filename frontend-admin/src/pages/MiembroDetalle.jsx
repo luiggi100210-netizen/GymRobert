@@ -263,7 +263,7 @@ export default function MiembroDetalle() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-gray-900">
               {miembro.nombres} {miembro.apellidos}
             </h1>
             <Badge estado={estado} />
