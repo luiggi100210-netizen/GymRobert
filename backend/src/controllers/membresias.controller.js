@@ -113,4 +113,78 @@ async function vencenProximo(req, res, next) {
   }
 }
 
-module.exports = { renovarMembresia, vencenProximo };
+// PUT /api/membresias/:id
+// Editar fechas y plan de una membresía existente
+async function actualizarMembresia(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { plan_id, fecha_inicio } = req.body;
+
+    if (!plan_id || !fecha_inicio) {
+      return res.status(400).json({ error: 'Plan y fecha de inicio son requeridos' });
+    }
+    if (!esFechaValida(fecha_inicio)) {
+      return res.status(400).json({ error: 'fecha_inicio inválida. Formato esperado: YYYY-MM-DD' });
+    }
+
+    const { rows: planRows } = await pool.query(
+      'SELECT * FROM planes WHERE id = $1 AND activo = true', [plan_id]
+    );
+    if (planRows.length === 0) {
+      return res.status(404).json({ error: 'Plan no encontrado o inactivo' });
+    }
+    const plan = planRows[0];
+
+    const { rows } = await pool.query(
+      `UPDATE membresias SET
+        plan_id      = $1,
+        fecha_inicio = $2,
+        fecha_fin    = ($2::DATE + $3 * INTERVAL '1 day')::DATE,
+        estado       = CASE
+                         WHEN ($2::DATE + $3 * INTERVAL '1 day')::DATE >= CURRENT_DATE THEN 'activa'
+                         ELSE 'vencida'
+                       END
+       WHERE id = $4 RETURNING *`,
+      [plan_id, fecha_inicio, plan.duracion_dias, id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Membresía no encontrada' });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/membresias/vencidos
+// Miembros con membresía vencida (para avisos de reactivación)
+async function obtenerVencidos(req, res, next) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+        m.id, m.nombres, m.apellidos, m.dni, m.telefono,
+        mem.id AS membresia_id,
+        mem.fecha_fin,
+        CURRENT_DATE - mem.fecha_fin AS dias_vencido,
+        p.nombre AS plan_nombre,
+        p.precio
+       FROM membresias mem
+       JOIN miembros m ON mem.miembro_id = m.id
+       JOIN planes   p ON mem.plan_id    = p.id
+       WHERE mem.estado = 'vencida'
+         AND mem.id = (
+           SELECT id FROM membresias m2
+           WHERE m2.miembro_id = m.id
+           ORDER BY fecha_fin DESC LIMIT 1
+         )
+       ORDER BY mem.fecha_fin DESC
+       LIMIT 100`
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { renovarMembresia, vencenProximo, actualizarMembresia, obtenerVencidos };

@@ -24,6 +24,7 @@ export default function NuevoMiembro() {
     fecha_nacimiento: '', huella_id: '',
     plan_id: '', fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
     metodo_pago: 'efectivo', comprobante: '',
+    membresia_id: '',
   })
 
   // Calcular fecha fin automáticamente
@@ -35,10 +36,12 @@ export default function NuevoMiembro() {
     api.get('/planes').then(({ data }) => setPlanes(data))
   }, [])
 
-  // Si es edición, cargar datos del miembro
+  // Si es edición, cargar datos del miembro + membresía activa
   useEffect(() => {
     if (!editarId) return
     api.get(`/miembros/${editarId}`).then(({ data }) => {
+      const planActual = planes.find((p) => p.nombre === data.plan_nombre)
+      if (planActual) setPlanSel(planActual)
       setForm((f) => ({
         ...f,
         dni:              data.dni,
@@ -47,9 +50,12 @@ export default function NuevoMiembro() {
         telefono:         data.telefono || '',
         fecha_nacimiento: data.fecha_nacimiento?.split('T')[0] || '',
         huella_id:        data.huella_id || '',
+        membresia_id:     data.membresia_id || '',
+        plan_id:          planActual?.id || f.plan_id,
+        fecha_inicio:     data.fecha_inicio?.split('T')[0] || f.fecha_inicio,
       }))
     })
-  }, [editarId])
+  }, [editarId, planes])
 
   const buscarDni = useCallback(async (dni) => {
     if (dni.length !== 8) return
@@ -103,6 +109,12 @@ export default function NuevoMiembro() {
           fecha_nacimiento: form.fecha_nacimiento || null,
           huella_id:        form.huella_id || null,
         })
+        if (form.membresia_id && form.plan_id && form.fecha_inicio) {
+          await api.put(`/membresias/${form.membresia_id}`, {
+            plan_id:      form.plan_id,
+            fecha_inicio: form.fecha_inicio,
+          })
+        }
       } else {
         await api.post('/miembros', { ...form })
       }
