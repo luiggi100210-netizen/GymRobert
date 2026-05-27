@@ -193,7 +193,7 @@ export default function Maquinas() {
 
             <div>
               <label className="label">Nombre *</label>
-              <input type="text" className="input" placeholder="Chest Press"
+              <input type="text" className="input" placeholder="Ej: Press de pecho"
                 value={form.nombre} onChange={(e) => set('nombre', e.target.value)} autoFocus />
             </div>
             <div>

@@ -108,7 +108,7 @@ export default function MaquinaPublica() {
                 <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-xl">
                   <span className="text-white text-xl ml-1">▶</span>
                 </div>
-                <p className="text-white text-sm font-semibold">Video tutorial</p>
+                <p className="text-white text-sm font-semibold">Tutorial en video</p>
               </div>
             </button>
           )}

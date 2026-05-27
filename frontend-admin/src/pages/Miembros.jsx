@@ -61,7 +61,7 @@ function CeldaTelefono({ miembro, onActualizar }) {
     <div className="flex items-center gap-2">
       <button
         onClick={() => setEditando(true)}
-        title="Click para editar"
+        title="Clic para editar"
         className="text-xs text-gray-600 hover:text-gray-900 transition-colors group flex items-center gap-1"
       >
         {tel
