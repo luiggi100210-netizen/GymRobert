@@ -119,14 +119,23 @@ export default function Maquinas() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-gray-400 mb-0.5">Página pública</p>
                   <p className="text-[10px] text-gray-500 truncate font-mono">/maquina/{m.id}</p>
-                  <a
-                    href={`${window.location.origin}/maquina/${m.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-gym-red hover:underline block mt-0.5"
-                  >
-                    Abrir vista cliente →
-                  </a>
+                  <div className="flex items-center gap-2 mt-1">
+                    <a
+                      href={`${window.location.origin}/maquina/${m.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-gym-red hover:underline"
+                    >
+                      Abrir vista →
+                    </a>
+                    <a
+                      href={`${qrUrl(m.id)}&format=png`}
+                      download={`QR-${m.nombre}.png`}
+                      className="text-[10px] text-blue-600 hover:underline"
+                    >
+                      ↓ Descargar QR
+                    </a>
+                  </div>
                 </div>
               </div>
 
