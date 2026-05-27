@@ -15,13 +15,41 @@ function fecha(f) {
 function mensajeWsp(miembro, tab) {
   const nombre = miembro.nombres.split(' ')[0]
   const f = fecha(miembro.fecha_fin)
+  const plan = miembro.plan_nombre || 'tu plan'
+
   if (tab === 'vencidos') {
-    return `Hola ${nombre} 👋 Te extrañamos en *Robert Gym*. Tu membresía venció el ${f}. ¡Vuelve a entrenar con nosotros y recupera tu ritmo! 💪🏋️`
+    return `Hola ${nombre} 👋
+
+Te escribimos desde *Robert Gym* para saludarte. Notamos que tu membresía (*${plan}*) venció el ${f} y te extrañamos por acá 🏋️
+
+No dejes que el esfuerzo que ya pusiste se pierda. ¡Ahora es el momento de retomar y seguir avanzando! 💪🔥
+
+Para renovar, acércate al gimnasio o escríbenos y te orientamos. ¡Te esperamos con todo!
+
+_Robert Gym — Arequipa_ 🏆`
   }
+
   if (tab === 'mes') {
-    return `Hola ${nombre} 👋 Te avisamos que tu membresía en *Robert Gym* vence el ${f}. ¡Renuévala pronto para no perder tu continuidad! 💪`
+    return `Hola ${nombre} 👋
+
+Te informamos que tu membresía en *Robert Gym* (*${plan}*) vence el *${f}*.
+
+Aún tienes tiempo para renovar sin perder tu continuidad. 🗓️ Renueva antes de esa fecha y sigue entrenando sin pausas.
+
+Si tienes alguna duda o quieres cambiar de plan, con gusto te asesoramos. ¡Gracias por ser parte de nuestra familia! 💪
+
+_Robert Gym — Arequipa_ 🏆`
   }
-  return `Hola ${nombre} 👋 Te recordamos que tu membresía en *Robert Gym* vence el *${f}*. ¡Renuévala antes de que expire para seguir entrenando sin interrupciones! 💪🏋️`
+
+  return `Hola ${nombre} ⚠️
+
+Te recordamos que tu membresía en *Robert Gym* (*${plan}*) vence en pocos días: *${f}*.
+
+Para no perder tu acceso al gimnasio, renuévala cuanto antes. 🏋️ Puedes hacerlo directamente en recepción o avisarnos por aquí.
+
+¡No pares ahora, que ya estás viendo resultados! 💪🔥
+
+_Robert Gym — Arequipa_ 🏆`
 }
 
 function abrirWhatsapp(telefono, mensaje) {
