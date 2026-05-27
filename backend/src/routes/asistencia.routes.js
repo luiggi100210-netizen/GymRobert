@@ -4,6 +4,7 @@ const rateLimit  = require('express-rate-limit');
 const { verificarToken } = require('../middleware/auth');
 const {
   registrarToque,
+  registrarToqueDni,
   registrarManual,
   asistenciasHoy,
   asistenciasDia,
@@ -19,8 +20,10 @@ const toqueLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// POST /api/asistencia/toque — NO requiere auth (lo llama el kiosco directamente)
-router.post('/toque', toqueLimiter, registrarToque);
+// POST /api/asistencia/toque     — NO requiere auth (kiosco biométrico)
+router.post('/toque',      toqueLimiter, registrarToque);
+// POST /api/asistencia/kiosco-dni — NO requiere auth (kiosco fallback por DNI)
+router.post('/kiosco-dni', toqueLimiter, registrarToqueDni);
 
 // Los siguientes endpoints requieren autenticación
 router.post('/manual',           verificarToken, registrarManual);

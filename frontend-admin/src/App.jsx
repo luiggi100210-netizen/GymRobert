@@ -14,6 +14,7 @@ import Maquinas       from './pages/Maquinas'
 import MaquinaPublica from './pages/MaquinaPublica'
 import Tienda         from './pages/Tienda'
 import Whatsapp       from './pages/Whatsapp'
+import KioscoDni      from './pages/KioscoDni'
 
 // Ruta protegida: redirige a login si no está autenticado
 function PrivateRoute({ children }) {
@@ -47,8 +48,9 @@ function AppRoutes() {
         <Route path="tienda"          element={<Tienda />} />
         <Route path="whatsapp"        element={<Whatsapp />} />
       </Route>
-      {/* Página pública — accesible sin login al escanear el QR */}
+      {/* Páginas públicas — accesibles sin login */}
       <Route path="/maquina/:id" element={<MaquinaPublica />} />
+      <Route path="/kiosco"      element={<KioscoDni />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -388,6 +388,144 @@ async function registrarManual(req, res, next) {
   }
 }
 
+// POST /api/asistencia/kiosco-dni
+// Registro de entrada/salida desde el kiosco usando DNI (fallback del biométrico)
+// No requiere autenticación — mismo rate-limit que /toque
+async function registrarToqueDni(req, res, next) {
+  const { dni } = req.body;
+
+  if (!dni || !/^\d{8}$/.test(dni)) {
+    return res.status(400).json({ error: 'DNI debe tener exactamente 8 dígitos' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Buscar miembro por DNI
+    const { rows: miembroRows } = await client.query(
+      `SELECT id, nombres, apellidos, dni, telefono, estado
+       FROM miembros WHERE dni = $1`,
+      [dni]
+    );
+
+    if (miembroRows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        estado: 'denegado',
+        motivo: 'dni_no_registrado',
+        mensaje: 'DNI no encontrado. Acércate a recepción.'
+      });
+    }
+
+    const miembro = miembroRows[0];
+
+    // 2. Miembro suspendido
+    if (miembro.estado === 'suspendido') {
+      await client.query('ROLLBACK');
+      return res.json({
+        estado: 'denegado',
+        motivo: 'miembro_suspendido',
+        mensaje: 'Membresía suspendida. Acércate a recepción.',
+        miembro: formatearMiembro(miembro)
+      });
+    }
+
+    // 3. Verificar membresía activa
+    const { rows: membresiaRows } = await client.query(
+      `SELECT mem.*, p.nombre AS plan_nombre, p.duracion_dias,
+              mem.fecha_fin - CURRENT_DATE AS dias_restantes
+       FROM membresias mem
+       JOIN planes p ON mem.plan_id = p.id
+       WHERE mem.miembro_id = $1
+         AND mem.estado = 'activa'
+         AND mem.fecha_fin >= CURRENT_DATE
+       ORDER BY mem.fecha_fin DESC
+       LIMIT 1`,
+      [miembro.id]
+    );
+
+    if (membresiaRows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.json({
+        estado: 'denegado',
+        motivo: 'membresia_vencida',
+        mensaje: 'Membresía vencida. Acércate a recepción para renovar.',
+        miembro: formatearMiembro(miembro)
+      });
+    }
+
+    const membresia = membresiaRows[0];
+
+    // 4. Buscar asistencia de hoy
+    const { rows: asistenciaRows } = await client.query(
+      `SELECT * FROM asistencias WHERE miembro_id = $1 AND fecha = CURRENT_DATE`,
+      [miembro.id]
+    );
+
+    let asistencia;
+    let estadoRespuesta;
+
+    if (asistenciaRows.length === 0) {
+      const { rows } = await client.query(
+        `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
+         VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
+         RETURNING *`,
+        [miembro.id]
+      );
+      asistencia = rows[0];
+      estadoRespuesta = 'entrada';
+    } else {
+      const registro = asistenciaRows[0];
+      if (registro.salida === null) {
+        const { rows } = await client.query(
+          `UPDATE asistencias
+           SET salida = NOW() AT TIME ZONE 'America/Lima',
+               duracion_minutos = ROUND(
+                 EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
+               )
+           WHERE id = $1 RETURNING *`,
+          [registro.id]
+        );
+        asistencia = rows[0];
+        estadoRespuesta = 'salida';
+      } else {
+        await client.query('ROLLBACK');
+        return res.json({
+          estado: 'ignorado',
+          mensaje: 'Visita del día ya completada',
+          miembro: formatearMiembro(miembro),
+          asistencia: registro
+        });
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      estado: estadoRespuesta,
+      miembro: formatearMiembro(miembro),
+      membresia: {
+        plan_nombre:    membresia.plan_nombre,
+        fecha_fin:      membresia.fecha_fin,
+        dias_restantes: membresia.dias_restantes,
+        duracion_dias:  membresia.duracion_dias
+      },
+      asistencia: {
+        fecha:            asistencia.fecha,
+        entrada:          asistencia.entrada,
+        salida:           asistencia.salida,
+        duracion_minutos: asistencia.duracion_minutos
+      }
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+
 // Función auxiliar: formatear datos del miembro para el kiosco
 function formatearMiembro(miembro) {
   return {
@@ -399,4 +537,4 @@ function formatearMiembro(miembro) {
   };
 }
 
-module.exports = { registrarToque, registrarManual, asistenciasHoy, asistenciasDia, reporteMensual };
+module.exports = { registrarToque, registrarToqueDni, registrarManual, asistenciasHoy, asistenciasDia, reporteMensual };
