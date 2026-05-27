@@ -97,16 +97,19 @@ export default function MaquinaPublica() {
           {youtubeId && (
             <button
               onClick={() => setModalVideo(true)}
-              className="flex items-center gap-4 w-full bg-red-900/20 hover:bg-red-900/30 border border-red-500/20 rounded-2xl px-5 py-4 transition-colors text-left"
+              className="relative w-full rounded-2xl overflow-hidden group"
             >
-              <div className="w-10 h-10 bg-red-500/30 rounded-xl flex items-center justify-center text-xl shrink-0">
-                ▶️
+              <img
+                src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+                alt="Video tutorial"
+                className="w-full h-44 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center gap-2">
+                <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-xl">
+                  <span className="text-white text-xl ml-1">▶</span>
+                </div>
+                <p className="text-white text-sm font-semibold">Video tutorial</p>
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Video tutorial</p>
-                <p className="text-xs text-white/40 mt-0.5">Cómo usar la máquina</p>
-              </div>
-              <span className="text-white/30 text-lg">→</span>
             </button>
           )}
 
