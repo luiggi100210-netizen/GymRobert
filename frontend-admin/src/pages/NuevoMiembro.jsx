@@ -310,7 +310,7 @@ export default function NuevoMiembro() {
                   <label className="label">Fecha de fin (calculada)</label>
                   <input
                     type="text"
-                    className="input bg-gray-800 cursor-not-allowed"
+                    className="input bg-gray-100 cursor-not-allowed"
                     value={fechaFin ? new Date(fechaFin + 'T12:00:00').toLocaleDateString('es-PE') : '—'}
                     readOnly
                   />
