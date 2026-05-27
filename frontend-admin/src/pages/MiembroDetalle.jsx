@@ -79,7 +79,7 @@ function ModalRenovar({ miembro, onCerrar, onRenovado }) {
       <div className="card w-full max-w-md space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white">Renovar membresía</h2>
+            <h2 className="text-sm font-bold text-gray-900">Renovar membresía</h2>
             <p className="text-xs text-gray-500 mt-0.5">{miembro.nombres} {miembro.apellidos}</p>
           </div>
           <button onClick={onCerrar} className="text-gray-600 hover:text-gray-300">✕</button>
@@ -148,7 +148,7 @@ function ModalRenovar({ miembro, onCerrar, onRenovado }) {
 
         {planSel && (
           <div className="bg-gym-red/10 border border-gym-red/30 rounded-lg px-4 py-3 flex justify-between items-center">
-            <span className="text-sm text-gray-300">Total a cobrar</span>
+            <span className="text-sm text-gray-700">Total a cobrar</span>
             <span className="text-xl font-black text-gym-red-light">{sol(planSel.precio)}</span>
           </div>
         )}
@@ -239,7 +239,7 @@ export default function MiembroDetalle() {
       <div className="flex items-center gap-2 text-xs text-gray-500">
         <Link to="/miembros" className="hover:text-gray-300 transition-colors">Miembros</Link>
         <span>/</span>
-        <span className="text-gray-300">{miembro.nombres} {miembro.apellidos}</span>
+        <span className="text-gray-600">{miembro.nombres} {miembro.apellidos}</span>
       </div>
 
       {/* Banner suspendido */}
@@ -311,11 +311,11 @@ export default function MiembroDetalle() {
       {/* Stats rápidas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="card text-center">
-          <p className="text-2xl font-bold text-white">{miembro.asistencias_mes ?? 0}</p>
+          <p className="text-2xl font-bold text-gray-900">{miembro.asistencias_mes ?? 0}</p>
           <p className="text-xs text-gray-500 mt-0.5">Asistencias este mes</p>
         </div>
         <div className="card text-center">
-          <p className="text-2xl font-bold text-white">{miembro.historial_pagos?.length ?? 0}</p>
+          <p className="text-2xl font-bold text-gray-900">{miembro.historial_pagos?.length ?? 0}</p>
           <p className="text-xs text-gray-500 mt-0.5">Pagos totales</p>
         </div>
         <div className="card text-center">
@@ -329,7 +329,7 @@ export default function MiembroDetalle() {
           <p className="text-xs text-gray-500 mt-0.5">Días restantes</p>
         </div>
         <div className="card text-center">
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-gray-900">
             {sol(miembro.historial_pagos?.reduce((s, p) => s + parseFloat(p.monto), 0))}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Total pagado</p>
@@ -339,15 +339,15 @@ export default function MiembroDetalle() {
       {/* Info de membresía activa */}
       {miembro.membresia_estado === 'activa' && (
         <div className="card border border-gym-border">
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">Membresía actual</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Membresía actual</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
             <div>
               <p className="text-gray-500 uppercase tracking-wide mb-0.5">Plan</p>
-              <p className="text-white font-semibold">{miembro.plan_nombre || '—'}</p>
+              <p className="text-gray-900 font-semibold">{miembro.plan_nombre || '—'}</p>
             </div>
             <div>
               <p className="text-gray-500 uppercase tracking-wide mb-0.5">Inicio</p>
-              <p className="text-gray-300">
+              <p className="text-gray-600">
                 {miembro.fecha_inicio
                   ? new Date(miembro.fecha_inicio).toLocaleDateString('es-PE')
                   : '—'}
@@ -356,7 +356,7 @@ export default function MiembroDetalle() {
             <div>
               <p className="text-gray-500 uppercase tracking-wide mb-0.5">Vencimiento</p>
               <p className={`font-semibold ${
-                miembro.dias_restantes <= 7 ? 'text-amber-400' : 'text-gray-300'
+                miembro.dias_restantes <= 7 ? 'text-amber-400' : 'text-gray-600'
               }`}>
                 {miembro.fecha_fin
                   ? new Date(miembro.fecha_fin).toLocaleDateString('es-PE')
@@ -400,7 +400,7 @@ export default function MiembroDetalle() {
       {/* Historial de pagos */}
       <div className="card p-0 overflow-hidden">
         <div className="px-5 py-4 border-b border-gym-border">
-          <h2 className="text-sm font-semibold text-gray-300">Historial de pagos</h2>
+          <h2 className="text-sm font-semibold text-gray-700">Historial de pagos</h2>
         </div>
         {!miembro.historial_pagos || miembro.historial_pagos.length === 0 ? (
           <p className="text-center text-gray-600 py-10 text-sm">Sin pagos registrados</p>
@@ -420,7 +420,7 @@ export default function MiembroDetalle() {
               <tbody>
                 {miembro.historial_pagos.map((p) => (
                   <tr key={p.id} className="table-row">
-                    <td className="px-5 py-3 text-gray-300 text-xs">{p.plan_nombre}</td>
+                    <td className="px-5 py-3 text-gray-700 text-xs">{p.plan_nombre}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
                       {new Date(p.fecha_inicio).toLocaleDateString('es-PE')}
                       {' → '}
@@ -430,7 +430,7 @@ export default function MiembroDetalle() {
                       <span className="font-bold text-emerald-400">{sol(p.monto)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-gray-300 flex items-center gap-1">
+                      <span className="text-xs text-gray-700 flex items-center gap-1">
                         <span>{ICONOS_PAGO[p.metodo_pago] || '💳'}</span>
                         <span className="capitalize">{p.metodo_pago}</span>
                       </span>

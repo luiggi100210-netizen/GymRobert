@@ -106,7 +106,7 @@ export default function NuevoMiembro() {
         <div className="w-16 h-16 bg-emerald-900/30 border border-emerald-700 rounded-full flex items-center justify-center text-3xl">
           ✓
         </div>
-        <h2 className="text-xl font-bold text-white">
+        <h2 className="text-xl font-bold text-gray-900">
           {esEdicion ? 'Miembro actualizado' : 'Miembro registrado correctamente'}
         </h2>
         <p className="text-gray-500 text-sm">Redirigiendo a la lista de miembros...</p>
@@ -147,7 +147,7 @@ export default function NuevoMiembro() {
       {/* PASO 1: Datos personales */}
       {(paso === 1 || esEdicion) && (
         <div className="card space-y-4">
-          <h2 className="text-sm font-semibold text-gray-300 border-b border-gym-border pb-3">
+          <h2 className="text-sm font-semibold text-gray-700 border-b border-gym-border pb-3">
             Datos personales
           </h2>
 
@@ -260,7 +260,7 @@ export default function NuevoMiembro() {
       {paso === 2 && !esEdicion && (
         <div className="space-y-4">
           <div className="card space-y-4">
-            <h2 className="text-sm font-semibold text-gray-300 border-b border-gym-border pb-3">
+            <h2 className="text-sm font-semibold text-gray-700 border-b border-gym-border pb-3">
               Seleccionar plan
             </h2>
             <div className="grid grid-cols-3 gap-3">
@@ -274,7 +274,7 @@ export default function NuevoMiembro() {
                       : 'border-gym-border hover:border-gray-600'
                   }`}
                 >
-                  <p className="font-bold text-white text-sm">{plan.nombre}</p>
+                  <p className="font-bold text-gray-900 text-sm">{plan.nombre}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{plan.duracion_dias} días</p>
                   <p className="text-gym-red-light font-bold mt-2">S/ {plan.precio}</p>
                 </button>
@@ -306,7 +306,7 @@ export default function NuevoMiembro() {
           </div>
 
           <div className="card space-y-4">
-            <h2 className="text-sm font-semibold text-gray-300 border-b border-gym-border pb-3">
+            <h2 className="text-sm font-semibold text-gray-700 border-b border-gym-border pb-3">
               Método de pago
             </h2>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -355,7 +355,7 @@ export default function NuevoMiembro() {
       {paso === 3 && !esEdicion && (
         <div className="space-y-4">
           <div className="card space-y-3">
-            <h2 className="text-sm font-semibold text-gray-300 border-b border-gym-border pb-3">
+            <h2 className="text-sm font-semibold text-gray-700 border-b border-gym-border pb-3">
               Resumen del registro
             </h2>
             <Fila label="Nombre" valor={`${form.nombres} ${form.apellidos}`} />
@@ -399,7 +399,7 @@ function Fila({ label, valor }) {
   return (
     <div className="flex justify-between items-center text-sm">
       <span className="text-gray-500">{label}</span>
-      <span className="text-gray-200 font-medium">{valor}</span>
+      <span className="text-gray-900 font-medium">{valor}</span>
     </div>
   )
 }

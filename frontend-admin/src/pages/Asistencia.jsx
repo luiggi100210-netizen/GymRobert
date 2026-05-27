@@ -110,7 +110,7 @@ function ModalRegistroManual({ onCerrar, onRegistrado }) {
                     className="w-full text-left px-4 py-2.5 hover:bg-white/5 transition-colors flex items-center justify-between gap-3"
                   >
                     <div>
-                      <p className="text-sm text-gray-200 font-medium">{m.nombres} {m.apellidos}</p>
+                      <p className="text-sm text-gray-900 font-medium">{m.nombres} {m.apellidos}</p>
                       <p className="text-xs text-gray-600">DNI: {m.dni}</p>
                     </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${
@@ -248,7 +248,7 @@ function TabHoy() {
       <div className="flex flex-col sm:flex-row items-start gap-4">
         <div className="grid grid-cols-3 gap-3 flex-1 w-full">
           <div className="card text-center">
-            <p className="text-2xl font-bold text-white">{lista.length}</p>
+            <p className="text-2xl font-bold text-gray-900">{lista.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">Total hoy</p>
           </div>
           <div className="card text-center">
@@ -287,10 +287,10 @@ function TabHoy() {
               {lista.map((a) => (
                 <tr key={a.id} className="table-row">
                   <td className="px-5 py-3">
-                    <p className="font-medium text-gray-200">{a.nombres} {a.apellidos}</p>
+                    <p className="font-medium text-gray-900">{a.nombres} {a.apellidos}</p>
                     <p className="text-xs text-gray-600">{a.plan_nombre || '—'}</p>
                   </td>
-                  <td className="px-4 py-3 text-gray-300 text-sm font-mono">{hora(a.entrada)}</td>
+                  <td className="px-4 py-3 text-gray-700 text-sm font-mono">{hora(a.entrada)}</td>
                   <td className="px-4 py-3 text-gray-400 text-sm font-mono">{hora(a.salida)}</td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{duracion(a.duracion_minutos)}</td>
                   <td className="px-4 py-3">
@@ -380,10 +380,10 @@ function TabHistorial() {
               {lista.map((a) => (
                 <tr key={a.id} className="table-row">
                   <td className="px-5 py-3">
-                    <p className="font-medium text-gray-200">{a.nombres} {a.apellidos}</p>
+                    <p className="font-medium text-gray-900">{a.nombres} {a.apellidos}</p>
                     <p className="text-xs text-gray-600">{a.plan_nombre || '—'}</p>
                   </td>
-                  <td className="px-4 py-3 text-gray-300 font-mono text-sm">{hora(a.entrada)}</td>
+                  <td className="px-4 py-3 text-gray-700 font-mono text-sm">{hora(a.entrada)}</td>
                   <td className="px-4 py-3 text-gray-400 font-mono text-sm">{hora(a.salida)}</td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{duracion(a.duracion_minutos)}</td>
                 </tr>
@@ -442,7 +442,7 @@ function TabReporteMensual() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="card text-center">
-              <p className="text-2xl font-bold text-white">{datos.total_asistencias}</p>
+              <p className="text-2xl font-bold text-gray-900">{datos.total_asistencias}</p>
               <p className="text-xs text-gray-500 mt-0.5">Total asistencias</p>
             </div>
             <div className="card text-center">
@@ -463,7 +463,7 @@ function TabReporteMensual() {
 
           {/* Gráfico por día */}
           <div className="card">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">Asistencias por día</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Asistencias por día</h3>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={datos.por_dia} barSize={10}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
@@ -487,7 +487,7 @@ function TabReporteMensual() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Por día de semana */}
             <div className="card">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Por día de semana</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Por día de semana</h3>
               <div className="space-y-2">
                 {datos.por_dia_semana.map((d) => {
                   const max = Math.max(...datos.por_dia_semana.map((x) => x.total))
@@ -507,7 +507,7 @@ function TabReporteMensual() {
 
             {/* Top miembros */}
             <div className="card">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Top 5 miembros</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 miembros</h3>
               <ol className="space-y-2">
                 {datos.top_miembros.map((m, i) => (
                   <li key={m.dni} className="flex items-center gap-3">
@@ -517,7 +517,7 @@ function TabReporteMensual() {
                       i === 2 ? 'bg-amber-700 text-white' : 'bg-gray-800 text-gray-400'
                     }`}>{i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-300 truncate">
+                      <p className="text-xs font-medium text-gray-700 truncate">
                         {m.nombres} {m.apellidos}
                       </p>
                     </div>

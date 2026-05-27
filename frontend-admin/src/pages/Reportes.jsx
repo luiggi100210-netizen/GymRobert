@@ -61,7 +61,7 @@ export default function Reportes() {
             </div>
             <div className="card">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Mes anterior</p>
-              <p className="text-2xl font-bold text-gray-300 mt-1">{sol(proyeccion?.mes_anterior)}</p>
+              <p className="text-2xl font-bold text-gray-700 mt-1">{sol(proyeccion?.mes_anterior)}</p>
             </div>
             <div className="card">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Proyección sig. mes</p>
@@ -89,7 +89,7 @@ export default function Reportes() {
 
           {/* Gráfico ingresos por día */}
           <div className="card">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">
               Ingresos diarios — {MESES[mes - 1]} {anio}
             </h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -120,7 +120,7 @@ export default function Reportes() {
           {/* Por plan + métodos de pago */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="card">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Ingresos por plan</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Ingresos por plan</h3>
               <div className="space-y-3">
                 {(ingresos?.por_plan || []).map((p) => {
                   const max = Math.max(...(ingresos?.por_plan || []).map((x) => x.total))
@@ -141,7 +141,7 @@ export default function Reportes() {
             </div>
 
             <div className="card">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Por método de pago</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Por método de pago</h3>
               <div className="space-y-2.5">
                 {[
                   { key: 'efectivo',      label: 'Efectivo',       icon: '💵', color: 'bg-emerald-500' },
@@ -158,7 +158,7 @@ export default function Reportes() {
                       <div className="flex-1">
                         <div className="flex justify-between text-xs mb-1">
                           <span className="text-gray-400">{label}</span>
-                          <span className="text-gray-300">{sol(monto)}</span>
+                          <span className="text-gray-700">{sol(monto)}</span>
                         </div>
                         <div className="w-full bg-gray-900 rounded-full h-1.5">
                           <div className={`${color} rounded-full h-1.5`} style={{ width: `${pct}%` }} />
