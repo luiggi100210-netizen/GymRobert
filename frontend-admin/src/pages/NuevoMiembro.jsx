@@ -269,6 +269,49 @@ export default function NuevoMiembro() {
             </button>
           )}
 
+          {esEdicion && planes.length > 0 && (
+            <div className="space-y-3 border-t border-gym-border pt-4">
+              <h2 className="text-sm font-semibold text-gray-700">Membresía activa</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {planes.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => seleccionarPlan(plan)}
+                    className={`p-3 rounded-xl border-2 text-left transition-all duration-150 ${
+                      planSel?.id === plan.id
+                        ? 'border-gym-red bg-gym-red/10'
+                        : 'border-gym-border hover:border-gray-600'
+                    }`}
+                  >
+                    <p className="font-bold text-gray-900 text-xs">{plan.nombre}</p>
+                    <p className="text-xs text-gray-500">{plan.duracion_dias}d</p>
+                    <p className="text-gym-red-light font-bold text-xs mt-1">S/ {plan.precio}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Fecha de inicio</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={form.fecha_inicio}
+                    onChange={(e) => set('fecha_inicio', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label">Fecha de fin (calculada)</label>
+                  <input
+                    type="text"
+                    className="input bg-gray-100 cursor-not-allowed"
+                    value={fechaFin ? new Date(fechaFin + 'T12:00:00').toLocaleDateString('es-PE') : '—'}
+                    readOnly
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {esEdicion && (
             <div className="flex gap-3 pt-2">
               <button onClick={() => navigate('/miembros')} className="btn-ghost flex-1">
