@@ -4,3 +4,6 @@ node_modules/
 dist/
 .DS_Store
 graphify-out/
+coverage/
+tmp-screens/
+screenshot-*.png
