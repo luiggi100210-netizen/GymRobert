@@ -88,13 +88,13 @@ async function eliminarPago(req, res, next) {
 
     // Verificar contraseña del admin autenticado
     const { rows: adminRows } = await pool.query(
-      'SELECT password_hash FROM admins WHERE id = $1',
+      'SELECT password FROM admin WHERE id = $1',
       [req.admin.id]
     );
     if (adminRows.length === 0) {
       return res.status(401).json({ error: 'Administrador no encontrado' });
     }
-    const valido = await bcrypt.compare(password, adminRows[0].password_hash);
+    const valido = await bcrypt.compare(password, adminRows[0].password);
     if (!valido) {
       return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
