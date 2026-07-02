@@ -223,11 +223,14 @@ async function editarMiembro(req, res, next) {
     const { id } = req.params;
     const { nombres, apellidos, telefono, fecha_nacimiento, huella_id, estado } = req.body;
 
+    // telefono: distinguir "no enviado" (conservar) de null/'' (borrar intencionalmente)
+    const telefonoEnviado = Object.prototype.hasOwnProperty.call(req.body, 'telefono');
+
     const { rows } = await pool.query(
       `UPDATE miembros SET
         nombres          = CASE WHEN $1 IS NOT NULL THEN $1 ELSE nombres END,
         apellidos        = CASE WHEN $2 IS NOT NULL THEN $2 ELSE apellidos END,
-        telefono         = $3,
+        telefono         = CASE WHEN $8 THEN $3 ELSE telefono END,
         fecha_nacimiento = CASE WHEN $4 IS NOT NULL THEN $4 ELSE fecha_nacimiento END,
         huella_id        = CASE WHEN $5 IS NOT NULL THEN $5 ELSE huella_id END,
         estado           = CASE WHEN $6 IS NOT NULL THEN $6 ELSE estado END
@@ -235,7 +238,8 @@ async function editarMiembro(req, res, next) {
       [
         nombres   ? nombres.toUpperCase()   : null,
         apellidos ? apellidos.toUpperCase() : null,
-        telefono || null, fecha_nacimiento || null, huella_id || null, estado || null, id
+        telefono || null, fecha_nacimiento || null, huella_id || null, estado || null, id,
+        telefonoEnviado
       ]
     );
 
