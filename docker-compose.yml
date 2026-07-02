@@ -4,6 +4,7 @@ services:
     image: postgres:16-alpine
     container_name: robertgym_db
     restart: unless-stopped
+    command: postgres -c timezone=America/Lima
     environment:
       POSTGRES_DB: robertgym
       POSTGRES_USER: postgres
