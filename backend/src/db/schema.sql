@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ============================================================
 CREATE TABLE IF NOT EXISTS planes (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nombre        VARCHAR(50)    NOT NULL,          -- 'Mensual', 'Trimestral', 'Anual'
+  nombre        VARCHAR(50)    UNIQUE NOT NULL,   -- 'Mensual', 'Trimestral', 'Anual'
   duracion_dias INT            NOT NULL,          -- 30, 90, 365
   precio        DECIMAL(8,2)   NOT NULL,          -- S/. 80.00, 210.00, 720.00
   activo        BOOLEAN        DEFAULT true,
@@ -94,6 +94,61 @@ CREATE TABLE IF NOT EXISTS admin (
 );
 
 -- ============================================================
+-- TABLA: admin_sesiones
+-- Sesiones activas del admin (límite de sesiones simultáneas)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS admin_sesiones (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id   UUID           NOT NULL REFERENCES admin(id) ON DELETE CASCADE,
+  jti        VARCHAR(64)    UNIQUE NOT NULL,   -- identificador único del token JWT
+  created_at TIMESTAMP      DEFAULT NOW(),
+  last_used  TIMESTAMP      DEFAULT NOW()
+);
+
+-- ============================================================
+-- TABLA: maquinas
+-- Máquinas del gimnasio (página pública escaneada por QR)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS maquinas (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre      VARCHAR(100)   NOT NULL,
+  descripcion TEXT,
+  foto_url    VARCHAR(500),
+  pdf_url     VARCHAR(500),
+  video_url   VARCHAR(500),
+  activo      BOOLEAN        DEFAULT true,     -- soft delete
+  created_at  TIMESTAMP      DEFAULT NOW()
+);
+
+-- ============================================================
+-- TABLA: productos_tienda
+-- Productos a la venta en el gimnasio
+-- ============================================================
+CREATE TABLE IF NOT EXISTS productos_tienda (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre     VARCHAR(100)   NOT NULL,
+  precio     DECIMAL(8,2)   NOT NULL CHECK (precio >= 0),
+  stock      INT            NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  foto_url   VARCHAR(500),
+  activo     BOOLEAN        DEFAULT true,      -- soft delete
+  created_at TIMESTAMP      DEFAULT NOW()
+);
+
+-- ============================================================
+-- TABLA: ventas_tienda
+-- Ventas registradas con descuento de stock
+-- ============================================================
+CREATE TABLE IF NOT EXISTS ventas_tienda (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  producto_id     UUID           NOT NULL REFERENCES productos_tienda(id),
+  cantidad        INT            NOT NULL CHECK (cantidad > 0),
+  precio_unitario DECIMAL(8,2)   NOT NULL,
+  total           DECIMAL(10,2)  NOT NULL,
+  admin_id        UUID           REFERENCES admin(id),
+  fecha           TIMESTAMPTZ    DEFAULT NOW()  -- los reportes usan AT TIME ZONE 'America/Lima'
+);
+
+-- ============================================================
 -- DATOS INICIALES
 -- ============================================================
 
@@ -118,3 +173,5 @@ CREATE INDEX IF NOT EXISTS idx_membresias_miembro ON membresias(miembro_id);
 CREATE INDEX IF NOT EXISTS idx_membresias_estado  ON membresias(estado);
 CREATE INDEX IF NOT EXISTS idx_asistencias_fecha  ON asistencias(fecha);
 CREATE INDEX IF NOT EXISTS idx_pagos_fecha        ON pagos(fecha_pago);
+CREATE INDEX IF NOT EXISTS idx_ventas_tienda_fecha    ON ventas_tienda(fecha);
+CREATE INDEX IF NOT EXISTS idx_ventas_tienda_producto ON ventas_tienda(producto_id);
