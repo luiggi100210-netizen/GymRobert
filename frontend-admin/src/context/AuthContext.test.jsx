@@ -66,14 +66,27 @@ describe('AuthContext', () => {
   })
 
   it('logout limpia localStorage y pone admin en null', async () => {
+    api.post.mockResolvedValueOnce({ data: { mensaje: 'Sesión cerrada' } })
     localStorage.setItem('gym_token', 'jwt-abc')
     localStorage.setItem('gym_admin', JSON.stringify({ id: '1', username: 'admin' }))
 
     const { result } = renderHook(() => useAuth(), { wrapper })
-    act(() => { result.current.logout() })
+    await act(async () => { await result.current.logout() })
 
     expect(localStorage.getItem('gym_token')).toBeNull()
     expect(localStorage.getItem('gym_admin')).toBeNull()
+    expect(result.current.admin).toBeNull()
+  })
+
+  it('logout limpia la sesión local aunque el servidor falle', async () => {
+    api.post.mockRejectedValueOnce(new Error('network down'))
+    localStorage.setItem('gym_token', 'jwt-abc')
+    localStorage.setItem('gym_admin', JSON.stringify({ id: '1', username: 'admin' }))
+
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    await act(async () => { await result.current.logout() })
+
+    expect(localStorage.getItem('gym_token')).toBeNull()
     expect(result.current.admin).toBeNull()
   })
 })
