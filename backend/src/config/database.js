@@ -1,10 +1,12 @@
 // Configuración de conexión a PostgreSQL
 const { Pool } = require('pg');
 
+// DB_SSL_STRICT=true exige certificado válido del servidor (recomendado en producción
+// si el proveedor lo soporta); por defecto se mantiene el modo permisivo actual
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: process.env.DB_SSL_STRICT === 'true' },
     })
   : new Pool({
       host:     process.env.DB_HOST     || 'localhost',

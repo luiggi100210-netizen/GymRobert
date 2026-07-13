@@ -23,7 +23,7 @@ async function verificarToken(req, res, next) {
         return res.status(401).json({ error: 'Sesión cerrada — inicia sesión nuevamente' });
       }
       // Actualizar last_used
-      pool.query('UPDATE admin_sesiones SET last_used = NOW() WHERE jti = $1', [payload.jti]);
+      await pool.query('UPDATE admin_sesiones SET last_used = NOW() WHERE jti = $1', [payload.jti]);
     }
 
     req.admin = payload;

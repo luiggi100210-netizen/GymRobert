@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const express   = require('express');
+const helmet    = require('helmet');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -22,9 +23,13 @@ const app = express();
 // Necesario para que express-rate-limit identifique IPs correctamente detrás de proxy/Docker
 app.set('trust proxy', 1);
 
-// CORS — restringir origen en producción con CORS_ORIGIN env var
+// Headers de seguridad (HSTS, nosniff, X-Frame-Options, etc.)
+app.use(helmet());
+
+// CORS — en producción el origen es obligatorio (mismo criterio que JWT_SECRET)
 if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGIN) {
-  console.warn('ADVERTENCIA: CORS_ORIGIN no definido en producción. Usando * (permite cualquier origen).');
+  console.error('FATAL: CORS_ORIGIN no está definido en producción.');
+  process.exit(1);
 }
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || '*',
