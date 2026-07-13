@@ -3,9 +3,13 @@ import api from '../api/client'
 import Spinner from '../components/ui/Spinner'
 
 const TABS = [
-  { key: 'activos',  label: 'Por vencer',  icon: '📅' },
-  { key: 'vencidos', label: 'Vencidos',    icon: '❌' },
+  { key: 'activos',    label: 'Por vencer', icon: '📅' },
+  { key: 'vencidos',   label: 'Vencidos',   icon: '❌' },
+  { key: 'frecuentes', label: 'Motivar',    icon: '💪' },
 ]
+
+// Mínimo de asistencias en el mes para considerar a un miembro "constante"
+const MINIMO_ASISTENCIAS = 6
 
 function fecha(f) {
   return new Date(f + 'T12:00:00').toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -60,6 +64,21 @@ Si tienes alguna duda o quieres cambiar de plan, con gusto te asesoramos. ¡Grac
 _Robert Gym — Arequipa_ 🏆`
 }
 
+function mensajeMotivacion(miembro) {
+  const nombre = miembro.nombres.split(' ')[0]
+  const veces  = miembro.asistencias_mes
+
+  return `¡Hola ${nombre}! 💪
+
+Desde *Robert Gym* queremos felicitarte: este mes ya llevas *${veces} entrenamientos* 🔥
+
+Se nota tu constancia y tu disciplina. Estás mejorando y cada día estás más cerca de tus objetivos. ¡No pares ahora! 🏋️
+
+Sigue así, que los resultados llegan entrenando como tú lo estás haciendo. ¡Te esperamos en tu próxima sesión! 👊
+
+_Robert Gym — Arequipa_ 🏆`
+}
+
 function abrirWhatsapp(telefono, mensaje) {
   const num = telefono?.replace(/\D/g, '')
   const tel = num?.startsWith('51') ? num : `51${num}`
@@ -105,26 +124,61 @@ function FilaMiembro({ m, esVencido }) {
   )
 }
 
+function FilaFrecuente({ m }) {
+  const sinTel = !m.telefono
+  return (
+    <tr className="border-b border-gym-border hover:bg-gray-50 transition-colors">
+      <td className="px-5 py-3">
+        <p className="font-medium text-gray-900 text-sm">{m.nombres} {m.apellidos}</p>
+        <p className="text-xs text-gray-500">DNI: {m.dni}</p>
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-700 font-mono">
+        {m.telefono || <span className="text-red-400 text-xs">Sin teléfono</span>}
+      </td>
+      <td className="px-4 py-3 text-xs text-gray-600">{m.plan_nombre || '—'}</td>
+      <td className="px-4 py-3 text-center">
+        <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-600">
+          🔥 {m.asistencias_mes}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <button
+          onClick={() => abrirWhatsapp(m.telefono, mensajeMotivacion(m))}
+          disabled={sinTel}
+          title={sinTel ? 'No tiene teléfono registrado' : 'Abrir WhatsApp con mensaje de motivación'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          💪 Felicitar
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 export default function Whatsapp() {
-  const [tab, setTab]           = useState('activos')
-  const [activos, setActivos]   = useState([])
-  const [vencidos, setVencidos] = useState([])
-  const [cargando, setCargando] = useState(true)
+  const [tab, setTab]               = useState('activos')
+  const [activos, setActivos]       = useState([])
+  const [vencidos, setVencidos]     = useState([])
+  const [frecuentes, setFrecuentes] = useState([])
+  const [cargando, setCargando]     = useState(true)
 
   useEffect(() => {
     setCargando(true)
     Promise.all([
       api.get('/membresias/vencen-pronto?dias=365'),
       api.get('/membresias/vencidos'),
-    ]).then(([r1, r2]) => {
+      api.get(`/miembros/frecuentes?minimo=${MINIMO_ASISTENCIAS}`),
+    ]).then(([r1, r2, r3]) => {
       setActivos(r1.data) // ya viene ordenado por fecha_fin ASC (el que vence antes, primero)
       setVencidos(r2.data)
+      setFrecuentes(r3.data)
     }).finally(() => setCargando(false))
   }, [])
 
-  const datos = { activos, vencidos }
+  const datos = { activos, vencidos, frecuentes }
   const lista = datos[tab] || []
   const esVencido = tab === 'vencidos'
+  const esFrecuentes = tab === 'frecuentes'
 
   return (
     <div className="space-y-5">
@@ -146,7 +200,9 @@ export default function Whatsapp() {
             {t.icon} {t.label}
             {datos[t.key]?.length > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                t.key === 'vencidos' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                t.key === 'vencidos' ? 'bg-red-100 text-red-600'
+                : t.key === 'frecuentes' ? 'bg-emerald-100 text-emerald-600'
+                : 'bg-amber-100 text-amber-600'
               }`}>
                 {datos[t.key].length}
               </span>
@@ -157,7 +213,11 @@ export default function Whatsapp() {
 
       {/* Ayuda */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-800">
-        💬 Al hacer clic en <strong>"Avisar"</strong> se abrirá WhatsApp con el mensaje listo. Solo presiona <strong>Enviar</strong>.
+        {esFrecuentes ? (
+          <>💪 Miembros con <strong>{MINIMO_ASISTENCIAS}+ asistencias este mes</strong>. Al hacer clic en <strong>"Felicitar"</strong> se abrirá WhatsApp con un mensaje de motivación listo — reconocer su constancia ayuda a que no abandonen.</>
+        ) : (
+          <>💬 Al hacer clic en <strong>"Avisar"</strong> se abrirá WhatsApp con el mensaje listo. Solo presiona <strong>Enviar</strong>.</>
+        )}
       </div>
 
       {/* Tabla */}
@@ -165,7 +225,9 @@ export default function Whatsapp() {
         <div className="card text-center py-16 text-gray-400">
           <p className="text-4xl mb-3">✅</p>
           <p className="font-medium text-gray-600">
-            {esVencido ? 'Sin membresías vencidas' : 'No hay miembros activos en este momento'}
+            {esFrecuentes
+              ? `Aún nadie llega a ${MINIMO_ASISTENCIAS} asistencias este mes`
+              : esVencido ? 'Sin membresías vencidas' : 'No hay miembros activos en este momento'}
           </p>
         </div>
       ) : (
@@ -177,15 +239,21 @@ export default function Whatsapp() {
                   <th className="text-left px-5 py-3 font-medium">Miembro</th>
                   <th className="text-left px-4 py-3 font-medium">Teléfono</th>
                   <th className="text-left px-4 py-3 font-medium">Plan</th>
-                  <th className="text-left px-4 py-3 font-medium">Vence</th>
-                  <th className="text-center px-4 py-3 font-medium">{esVencido ? 'Venció hace' : 'Días restantes'}</th>
+                  {esFrecuentes ? (
+                    <th className="text-center px-4 py-3 font-medium">Asistencias del mes</th>
+                  ) : (
+                    <>
+                      <th className="text-left px-4 py-3 font-medium">Vence</th>
+                      <th className="text-center px-4 py-3 font-medium">{esVencido ? 'Venció hace' : 'Días restantes'}</th>
+                    </>
+                  )}
                   <th className="text-left px-4 py-3 font-medium">Acción</th>
                 </tr>
               </thead>
               <tbody>
-                {lista.map((m) => (
-                  <FilaMiembro key={m.membresia_id} m={m} esVencido={esVencido} />
-                ))}
+                {esFrecuentes
+                  ? lista.map((m) => <FilaFrecuente key={m.id} m={m} />)
+                  : lista.map((m) => <FilaMiembro key={m.membresia_id} m={m} esVencido={esVencido} />)}
               </tbody>
             </table>
           </div>

@@ -2,6 +2,16 @@
 const pool = require('../config/database');
 const { esFechaValida } = require('../utils/validaciones');
 
+// Valida una medida corporal opcional; devuelve mensaje de error o null
+function validarMedida(valor, min, max, etiqueta) {
+  if (valor == null || valor === '') return null;
+  const num = parseFloat(valor);
+  if (isNaN(num) || num <= min || num >= max) {
+    return `${etiqueta} inválida (debe estar entre ${min} y ${max})`;
+  }
+  return null;
+}
+
 // GET /api/miembros
 // Lista todos los miembros con estado de membresía activa
 async function listarMiembros(req, res, next) {
@@ -146,7 +156,8 @@ async function crearMiembro(req, res, next) {
   const {
     dni, nombres, apellidos, telefono, fecha_nacimiento, huella_id,
     plan_id, fecha_inicio,
-    metodo_pago, comprobante
+    metodo_pago, comprobante,
+    peso_kg, estatura_cm
   } = req.body;
 
   if (!dni || !nombres || !apellidos || !plan_id || !fecha_inicio) {
@@ -161,6 +172,14 @@ async function crearMiembro(req, res, next) {
 
   if (!esFechaValida(fecha_inicio)) {
     return res.status(400).json({ error: 'fecha_inicio inválida. Formato esperado: YYYY-MM-DD' });
+  }
+
+  // Medidas corporales opcionales — solo se validan si vienen
+  const errorMedida =
+    validarMedida(peso_kg, 20, 400, 'peso_kg') ||
+    validarMedida(estatura_cm, 80, 260, 'estatura_cm');
+  if (errorMedida) {
+    return res.status(400).json({ error: errorMedida });
   }
 
   const client = await pool.connect();
@@ -200,6 +219,15 @@ async function crearMiembro(req, res, next) {
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [membresia.id, plan.precio, metodo_pago || 'efectivo', comprobante || null]
     );
+
+    // Medida inicial (solo si el miembro aceptó darla)
+    if (peso_kg || estatura_cm) {
+      await client.query(
+        `INSERT INTO medidas (miembro_id, peso_kg, estatura_cm)
+         VALUES ($1, $2, $3)`,
+        [miembro.id, peso_kg || null, estatura_cm || null]
+      );
+    }
 
     await client.query('COMMIT');
 
@@ -309,4 +337,90 @@ async function buscarPorDni(req, res, next) {
   }
 }
 
-module.exports = { listarMiembros, obtenerMiembro, crearMiembro, editarMiembro, buscarPorDni, buscarReniec };
+// GET /api/miembros/:id/medidas
+// Historial de medidas del miembro (ascendente para graficar progreso)
+async function listarMedidas(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      `SELECT id, fecha, peso_kg, estatura_cm
+       FROM medidas WHERE miembro_id = $1
+       ORDER BY fecha ASC, id ASC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/miembros/:id/medidas
+// Registrar una nueva medida (peso y/o estatura)
+async function registrarMedida(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { peso_kg, estatura_cm } = req.body;
+
+    if (!peso_kg && !estatura_cm) {
+      return res.status(400).json({ error: 'Debe indicar al menos peso o estatura' });
+    }
+    const errorMedida =
+      validarMedida(peso_kg, 20, 400, 'peso_kg') ||
+      validarMedida(estatura_cm, 80, 260, 'estatura_cm');
+    if (errorMedida) {
+      return res.status(400).json({ error: errorMedida });
+    }
+
+    const { rows: miembro } = await pool.query(
+      'SELECT id FROM miembros WHERE id = $1', [id]
+    );
+    if (miembro.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO medidas (miembro_id, peso_kg, estatura_cm)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [id, peso_kg || null, estatura_cm || null]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/miembros/frecuentes
+// Miembros constantes del mes actual (para mensajes de motivación por WhatsApp)
+async function miembrosFrecuentes(req, res, next) {
+  try {
+    const minimo = Math.max(1, parseInt(req.query.minimo) || 6);
+
+    const { rows } = await pool.query(
+      `SELECT
+        m.id, m.nombres, m.apellidos, m.dni, m.telefono,
+        COUNT(a.id)::int AS asistencias_mes,
+        p.nombre AS plan_nombre
+       FROM miembros m
+       JOIN asistencias a ON a.miembro_id = m.id
+         AND DATE_TRUNC('month', a.fecha) = DATE_TRUNC('month', CURRENT_DATE)
+       LEFT JOIN LATERAL (
+         SELECT * FROM membresias WHERE miembro_id = m.id ORDER BY fecha_fin DESC LIMIT 1
+       ) mem ON true
+       LEFT JOIN planes p ON mem.plan_id = p.id
+       GROUP BY m.id, m.nombres, m.apellidos, m.dni, m.telefono, p.nombre
+       HAVING COUNT(a.id) >= $1
+       ORDER BY asistencias_mes DESC
+       LIMIT 200`,
+      [minimo]
+    );
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  listarMiembros, obtenerMiembro, crearMiembro, editarMiembro,
+  buscarPorDni, buscarReniec,
+  listarMedidas, registrarMedida, miembrosFrecuentes,
+};

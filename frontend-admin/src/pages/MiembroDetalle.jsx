@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { format, addDays } from 'date-fns'
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts'
 import api from '../api/client'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
+import EmptyState from '../components/ui/EmptyState'
 
 const sol = (n) => `S/ ${parseFloat(n || 0).toFixed(2)}`
 
@@ -479,6 +483,9 @@ export default function MiembroDetalle() {
         </div>
       )}
 
+      {/* Progreso físico (peso/estatura) */}
+      <ProgresoFisico miembroId={miembro.id} />
+
       {/* Historial de pagos */}
       <div className="card p-0 overflow-hidden">
         <div className="px-5 py-4 border-b border-gym-border">
@@ -557,6 +564,150 @@ export default function MiembroDetalle() {
           onCerrar={() => setModalEliminarPago(null)}
           onEliminado={() => { setModalEliminarPago(null); cargar() }}
         />
+      )}
+    </div>
+  )
+}
+
+// Tarjeta de progreso físico: historial de medidas, gráfico de peso y registro rápido
+function ProgresoFisico({ miembroId }) {
+  const [medidas, setMedidas]   = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [peso, setPeso]         = useState('')
+  const [estatura, setEstatura] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError]       = useState('')
+
+  const cargar = () => {
+    api.get(`/miembros/${miembroId}/medidas`)
+      .then(({ data }) => setMedidas(data))
+      .finally(() => setCargando(false))
+  }
+
+  useEffect(() => { cargar() }, [miembroId])
+
+  const handleGuardar = async () => {
+    if (!peso && !estatura) return
+    setGuardando(true)
+    setError('')
+    try {
+      await api.post(`/miembros/${miembroId}/medidas`, {
+        peso_kg:     peso     || null,
+        estatura_cm: estatura || null,
+      })
+      setPeso('')
+      setEstatura('')
+      cargar()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al registrar la medida')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  // Última medida conocida de cada tipo (pueden venir en registros distintos)
+  const ultimoPeso     = [...medidas].reverse().find((m) => m.peso_kg != null)
+  const ultimaEstatura = [...medidas].reverse().find((m) => m.estatura_cm != null)
+  const imc = ultimoPeso && ultimaEstatura
+    ? (parseFloat(ultimoPeso.peso_kg) / Math.pow(parseFloat(ultimaEstatura.estatura_cm) / 100, 2)).toFixed(1)
+    : null
+
+  // Serie para el gráfico: solo registros con peso
+  const serie = medidas
+    .filter((m) => m.peso_kg != null)
+    .map((m) => ({
+      etiqueta: new Date(m.fecha + 'T12:00:00').toLocaleDateString('es-PE', { day: '2-digit', month: 'short' }),
+      peso: parseFloat(m.peso_kg),
+    }))
+
+  const primerPeso = serie[0]?.peso
+  const pesoActual = serie[serie.length - 1]?.peso
+  const cambio = primerPeso != null && serie.length > 1
+    ? (pesoActual - primerPeso).toFixed(1)
+    : null
+
+  return (
+    <div className="card">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 className="text-sm font-semibold text-gray-700">Progreso físico</h2>
+        {cambio != null && (
+          <span className={`text-xs font-bold px-2 py-1 rounded-md ${
+            cambio <= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+          }`}>
+            {cambio > 0 ? '+' : ''}{cambio} kg desde la primera medida
+          </span>
+        )}
+      </div>
+
+      {cargando ? <Spinner /> : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Resumen + registro */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-slate-50 rounded-lg py-2.5">
+                <p className="stat-num text-xl text-gray-900">{ultimoPeso ? `${parseFloat(ultimoPeso.peso_kg)}` : '—'}</p>
+                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Peso kg</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg py-2.5">
+                <p className="stat-num text-xl text-gray-900">{ultimaEstatura ? `${parseFloat(ultimaEstatura.estatura_cm)}` : '—'}</p>
+                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">Est. cm</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg py-2.5">
+                <p className="stat-num text-xl text-gray-900">{imc || '—'}</p>
+                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mt-0.5">IMC</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="label mb-0">Registrar nueva medida</p>
+              <div className="flex gap-2">
+                <input
+                  type="number" step="0.1" min="20" max="399"
+                  className="input" placeholder="Peso kg"
+                  value={peso} onChange={(e) => setPeso(e.target.value)}
+                />
+                <input
+                  type="number" step="0.5" min="80" max="259"
+                  className="input" placeholder="Est. cm"
+                  value={estatura} onChange={(e) => setEstatura(e.target.value)}
+                />
+                <button
+                  onClick={handleGuardar}
+                  disabled={guardando || (!peso && !estatura)}
+                  className="btn-primary text-sm shrink-0"
+                >
+                  {guardando ? '...' : 'Guardar'}
+                </button>
+              </div>
+              {error && <p className="text-xs text-red-500">{error}</p>}
+            </div>
+          </div>
+
+          {/* Gráfico de evolución del peso */}
+          <div className="lg:col-span-2">
+            {serie.length >= 2 ? (
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={serie} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis dataKey="etiqueta" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={['auto', 'auto']} tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8 }}
+                    formatter={(v) => [`${v} kg`, 'Peso']}
+                  />
+                  <Line type="monotone" dataKey="peso" stroke="#dc2626" strokeWidth={2.5} dot={{ r: 3.5, fill: '#dc2626' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState
+                compacto
+                icono="📈"
+                titulo={medidas.length === 0 ? 'Sin medidas registradas' : 'Registra otra medida para ver la evolución'}
+                detalle="Con dos o más registros de peso verás aquí la curva de progreso del miembro."
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

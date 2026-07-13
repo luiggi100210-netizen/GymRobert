@@ -22,6 +22,7 @@ export default function NuevoMiembro() {
   const [form, setForm] = useState({
     dni: '', nombres: '', apellidos: '', telefono: '',
     fecha_nacimiento: '', huella_id: '',
+    peso_kg: '', estatura_cm: '',
     plan_id: '', fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
     metodo_pago: 'efectivo', comprobante: '',
     membresia_id: '',
@@ -266,6 +267,40 @@ export default function NuevoMiembro() {
               onChange={(e) => set('huella_id', e.target.value)}
             />
           </div>
+
+          {!esEdicion && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Peso (kg) — opcional</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="20"
+                  max="399"
+                  className="input"
+                  placeholder="Ej: 78.5"
+                  value={form.peso_kg}
+                  onChange={(e) => set('peso_kg', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label">Estatura (cm) — opcional</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="80"
+                  max="259"
+                  className="input"
+                  placeholder="Ej: 172"
+                  value={form.estatura_cm}
+                  onChange={(e) => set('estatura_cm', e.target.value)}
+                />
+              </div>
+              <p className="col-span-2 text-xs text-gray-400 -mt-2">
+                Sirven para hacer seguimiento del progreso físico. Si el miembro prefiere no darlos, déjalos vacíos.
+              </p>
+            </div>
+          )}
 
           {!esEdicion && (
             <button

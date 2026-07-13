@@ -82,6 +82,20 @@ CREATE TABLE IF NOT EXISTS asistencias (
 );
 
 -- ============================================================
+-- TABLA: medidas
+-- Historial de medidas corporales (peso/estatura) por miembro
+-- Opcionales — para seguimiento del progreso físico
+-- ============================================================
+CREATE TABLE IF NOT EXISTS medidas (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  miembro_id  UUID NOT NULL REFERENCES miembros(id) ON DELETE CASCADE,
+  fecha       DATE NOT NULL DEFAULT CURRENT_DATE,
+  peso_kg     NUMERIC(5,2) CHECK (peso_kg > 20 AND peso_kg < 400),
+  estatura_cm NUMERIC(5,1) CHECK (estatura_cm > 80 AND estatura_cm < 260),
+  CONSTRAINT medidas_alguna CHECK (peso_kg IS NOT NULL OR estatura_cm IS NOT NULL)
+);
+
+-- ============================================================
 -- TABLA: admin
 -- Usuario administrador del sistema (cuenta única)
 -- ============================================================
@@ -172,6 +186,7 @@ CREATE INDEX IF NOT EXISTS idx_miembros_huella_id ON miembros(huella_id);
 CREATE INDEX IF NOT EXISTS idx_membresias_miembro ON membresias(miembro_id);
 CREATE INDEX IF NOT EXISTS idx_membresias_estado  ON membresias(estado);
 CREATE INDEX IF NOT EXISTS idx_asistencias_fecha  ON asistencias(fecha);
+CREATE INDEX IF NOT EXISTS idx_medidas_miembro    ON medidas(miembro_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_pagos_fecha        ON pagos(fecha_pago);
 CREATE INDEX IF NOT EXISTS idx_ventas_tienda_fecha    ON ventas_tienda(fecha);
 CREATE INDEX IF NOT EXISTS idx_ventas_tienda_producto ON ventas_tienda(producto_id);
