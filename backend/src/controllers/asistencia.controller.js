@@ -1,5 +1,6 @@
 // Controlador de asistencia — lógica crítica del kiosco biométrico
 const pool = require('../config/database');
+const { esFechaValida } = require('../utils/validaciones');
 
 // POST /api/asistencia/toque
 // Endpoint principal del kiosco: registra entrada o salida automáticamente
@@ -10,29 +11,56 @@ async function registrarToque(req, res, next) {
     return res.status(400).json({ error: 'huella_id es requerido' });
   }
 
+  return procesarToqueKiosco(res, next, {
+    sqlMiembro: `SELECT id, nombres, apellidos, dni, telefono, estado
+                 FROM miembros WHERE huella_id = $1`,
+    valor: huella_id,
+    motivoNoEncontrado: 'huella_no_registrada',
+    mensajeNoEncontrado: 'Huella no registrada en el sistema',
+  });
+}
+
+// POST /api/asistencia/kiosco-dni
+// Registro de entrada/salida desde el kiosco usando DNI (fallback del biométrico)
+// No requiere autenticación — mismo rate-limit que /toque
+async function registrarToqueDni(req, res, next) {
+  const { dni } = req.body;
+
+  if (!dni || !/^\d{8}$/.test(dni)) {
+    return res.status(400).json({ error: 'DNI debe tener exactamente 8 dígitos' });
+  }
+
+  return procesarToqueKiosco(res, next, {
+    sqlMiembro: `SELECT id, nombres, apellidos, dni, telefono, estado
+                 FROM miembros WHERE dni = $1`,
+    valor: dni,
+    motivoNoEncontrado: 'dni_no_registrado',
+    mensajeNoEncontrado: 'DNI no encontrado. Acércate a recepción.',
+  });
+}
+
+// Flujo compartido del kiosco (huella o DNI): valida miembro y membresía,
+// registra entrada/salida y arma la respuesta para la pantalla del kiosco
+async function procesarToqueKiosco(res, next, { sqlMiembro, valor, motivoNoEncontrado, mensajeNoEncontrado }) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // 1. Buscar miembro por huella_id
-    const { rows: miembroRows } = await client.query(
-      `SELECT id, nombres, apellidos, dni, telefono, estado
-       FROM miembros WHERE huella_id = $1`,
-      [huella_id]
-    );
+    // 1. Buscar miembro
+    const { rows: miembroRows } = await client.query(sqlMiembro, [valor]);
 
     if (miembroRows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({
         estado: 'denegado',
-        motivo: 'huella_no_registrada',
-        mensaje: 'Huella no registrada en el sistema'
+        motivo: motivoNoEncontrado,
+        mensaje: mensajeNoEncontrado
       });
     }
 
     const miembro = miembroRows[0];
 
-    // Si el miembro está suspendido
+    // 2. Miembro suspendido
     if (miembro.estado === 'suspendido') {
       await client.query('ROLLBACK');
       return res.json({
@@ -43,22 +71,10 @@ async function registrarToque(req, res, next) {
       });
     }
 
-    // 2. Verificar membresía activa (fecha_fin >= hoy)
-    const { rows: membresiaRows } = await client.query(
-      `SELECT mem.*, p.nombre AS plan_nombre, p.duracion_dias,
-              mem.fecha_fin - CURRENT_DATE AS dias_restantes
-       FROM membresias mem
-       JOIN planes p ON mem.plan_id = p.id
-       WHERE mem.miembro_id = $1
-         AND mem.estado = 'activa'
-         AND mem.fecha_fin >= CURRENT_DATE
-       ORDER BY mem.fecha_fin DESC
-       LIMIT 1`,
-      [miembro.id]
-    );
+    // 3. Verificar membresía activa
+    const membresia = await buscarMembresiaActiva(client, miembro.id);
 
-    if (membresiaRows.length === 0) {
-      // Membresía vencida o inexistente
+    if (!membresia) {
       await client.query('ROLLBACK');
       return res.json({
         estado: 'denegado',
@@ -68,64 +84,24 @@ async function registrarToque(req, res, next) {
       });
     }
 
-    const membresia = membresiaRows[0];
+    // 4. Registrar entrada o salida del día
+    const movimiento = await registrarMovimiento(client, miembro.id);
 
-    // 3. Buscar registro de asistencia de hoy (UNIQUE miembro_id + fecha)
-    const { rows: asistenciaRows } = await client.query(
-      `SELECT * FROM asistencias
-       WHERE miembro_id = $1
-         AND fecha = CURRENT_DATE`,
-      [miembro.id]
-    );
-
-    let asistencia;
-    let estadoRespuesta;
-
-    if (asistenciaRows.length === 0) {
-      // NO existe registro hoy → ENTRADA
-      const { rows } = await client.query(
-        `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
-         VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
-         RETURNING *`,
-        [miembro.id]
-      );
-      asistencia = rows[0];
-      estadoRespuesta = 'entrada';
-
-    } else {
-      const registro = asistenciaRows[0];
-
-      if (registro.salida === null) {
-        // Existe registro pero sin salida → SALIDA
-        const { rows } = await client.query(
-          `UPDATE asistencias
-           SET salida = NOW() AT TIME ZONE 'America/Lima',
-               duracion_minutos = ROUND(
-                 EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
-               )
-           WHERE id = $1 RETURNING *`,
-          [registro.id]
-        );
-        asistencia = rows[0];
-        estadoRespuesta = 'salida';
-
-      } else {
-        // Ya tiene entrada y salida → IGNORADO (visita completa del día)
-        await client.query('ROLLBACK');
-        return res.json({
-          estado: 'ignorado',
-          mensaje: 'Visita del día ya completada',
-          miembro: formatearMiembro(miembro),
-          asistencia: registro
-        });
-      }
+    if (movimiento.completa) {
+      await client.query('ROLLBACK');
+      return res.json({
+        estado: 'ignorado',
+        mensaje: 'Visita del día ya completada',
+        miembro: formatearMiembro(miembro),
+        asistencia: movimiento.registro
+      });
     }
 
     await client.query('COMMIT');
 
     // Respuesta completa para el kiosco
     res.json({
-      estado: estadoRespuesta,
+      estado: movimiento.tipo,
       miembro: formatearMiembro(miembro),
       membresia: {
         plan_nombre:    membresia.plan_nombre,
@@ -134,11 +110,69 @@ async function registrarToque(req, res, next) {
         duracion_dias:  membresia.duracion_dias
       },
       asistencia: {
-        fecha:            asistencia.fecha,
-        entrada:          asistencia.entrada,
-        salida:           asistencia.salida,
-        duracion_minutos: asistencia.duracion_minutos
+        fecha:            movimiento.asistencia.fecha,
+        entrada:          movimiento.asistencia.entrada,
+        salida:           movimiento.asistencia.salida,
+        duracion_minutos: movimiento.asistencia.duracion_minutos
       }
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+
+// POST /api/asistencia/manual
+// Registro manual de entrada/salida desde el panel admin (requiere auth)
+async function registrarManual(req, res, next) {
+  const { miembro_id } = req.body;
+
+  if (!miembro_id) {
+    return res.status(400).json({ error: 'miembro_id es requerido' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Verificar que el miembro exista
+    const { rows: miembroRows } = await client.query(
+      `SELECT id, nombres, apellidos, dni, estado
+       FROM miembros WHERE id = $1`,
+      [miembro_id]
+    );
+
+    if (miembroRows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    const miembro = miembroRows[0];
+
+    // Verificar membresía activa
+    const membresia = await buscarMembresiaActiva(client, miembro.id);
+
+    if (!membresia) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'El miembro no tiene membresía activa' });
+    }
+
+    // Registrar entrada o salida del día
+    const movimiento = await registrarMovimiento(client, miembro.id);
+
+    if (movimiento.completa) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'El miembro ya completó su visita del día' });
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      estado: movimiento.tipo,
+      miembro: formatearMiembro(miembro),
+      asistencia: movimiento.asistencia
     });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -179,6 +213,10 @@ async function asistenciasHoy(req, res, next) {
 async function asistenciasDia(req, res, next) {
   try {
     const { fecha } = req.params;
+
+    if (!esFechaValida(fecha)) {
+      return res.status(400).json({ error: 'Fecha inválida. Formato esperado: YYYY-MM-DD' });
+    }
 
     const { rows } = await pool.query(
       `SELECT
@@ -286,244 +324,62 @@ async function reporteMensual(req, res, next) {
   }
 }
 
-// POST /api/asistencia/manual
-// Registro manual de entrada/salida desde el panel admin (requiere auth)
-async function registrarManual(req, res, next) {
-  const { miembro_id } = req.body;
-
-  if (!miembro_id) {
-    return res.status(400).json({ error: 'miembro_id es requerido' });
-  }
-
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    // Verificar que el miembro exista
-    const { rows: miembroRows } = await client.query(
-      `SELECT id, nombres, apellidos, dni, estado
-       FROM miembros WHERE id = $1`,
-      [miembro_id]
-    );
-
-    if (miembroRows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Miembro no encontrado' });
-    }
-
-    const miembro = miembroRows[0];
-
-    // Verificar membresía activa
-    const { rows: membresiaRows } = await client.query(
-      `SELECT mem.*, p.nombre AS plan_nombre
-       FROM membresias mem
-       JOIN planes p ON mem.plan_id = p.id
-       WHERE mem.miembro_id = $1
-         AND mem.estado = 'activa'
-         AND mem.fecha_fin >= CURRENT_DATE
-       ORDER BY mem.fecha_fin DESC
-       LIMIT 1`,
-      [miembro.id]
-    );
-
-    if (membresiaRows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'El miembro no tiene membresía activa' });
-    }
-
-    // Buscar registro de asistencia de hoy
-    const { rows: asistenciaRows } = await client.query(
-      `SELECT * FROM asistencias
-       WHERE miembro_id = $1 AND fecha = CURRENT_DATE`,
-      [miembro.id]
-    );
-
-    let asistencia;
-    let estadoRespuesta;
-
-    if (asistenciaRows.length === 0) {
-      // Registrar entrada
-      const { rows } = await client.query(
-        `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
-         VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
-         RETURNING *`,
-        [miembro.id]
-      );
-      asistencia = rows[0];
-      estadoRespuesta = 'entrada';
-    } else {
-      const registro = asistenciaRows[0];
-
-      if (registro.salida === null) {
-        // Registrar salida
-        const { rows } = await client.query(
-          `UPDATE asistencias
-           SET salida = NOW() AT TIME ZONE 'America/Lima',
-               duracion_minutos = ROUND(
-                 EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
-               )
-           WHERE id = $1 RETURNING *`,
-          [registro.id]
-        );
-        asistencia = rows[0];
-        estadoRespuesta = 'salida';
-      } else {
-        await client.query('ROLLBACK');
-        return res.status(400).json({ error: 'El miembro ya completó su visita del día' });
-      }
-    }
-
-    await client.query('COMMIT');
-
-    res.status(201).json({
-      estado: estadoRespuesta,
-      miembro: formatearMiembro(miembro),
-      asistencia
-    });
-  } catch (err) {
-    await client.query('ROLLBACK');
-    next(err);
-  } finally {
-    client.release();
-  }
+// Membresía activa más reciente del miembro (o null si no tiene)
+async function buscarMembresiaActiva(client, miembroId) {
+  const { rows } = await client.query(
+    `SELECT mem.*, p.nombre AS plan_nombre, p.duracion_dias,
+            mem.fecha_fin - CURRENT_DATE AS dias_restantes
+     FROM membresias mem
+     JOIN planes p ON mem.plan_id = p.id
+     WHERE mem.miembro_id = $1
+       AND mem.estado = 'activa'
+       AND mem.fecha_fin >= CURRENT_DATE
+     ORDER BY mem.fecha_fin DESC
+     LIMIT 1`,
+    [miembroId]
+  );
+  return rows[0] || null;
 }
 
-// POST /api/asistencia/kiosco-dni
-// Registro de entrada/salida desde el kiosco usando DNI (fallback del biométrico)
-// No requiere autenticación — mismo rate-limit que /toque
-async function registrarToqueDni(req, res, next) {
-  const { dni } = req.body;
+// Registra el movimiento del día: entrada si no hay registro,
+// salida si falta, o indica que la visita ya está completa
+async function registrarMovimiento(client, miembroId) {
+  const { rows: asistenciaRows } = await client.query(
+    `SELECT * FROM asistencias
+     WHERE miembro_id = $1
+       AND fecha = CURRENT_DATE`,
+    [miembroId]
+  );
 
-  if (!dni || !/^\d{8}$/.test(dni)) {
-    return res.status(400).json({ error: 'DNI debe tener exactamente 8 dígitos' });
+  if (asistenciaRows.length === 0) {
+    // NO existe registro hoy → ENTRADA
+    const { rows } = await client.query(
+      `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
+       VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
+       RETURNING *`,
+      [miembroId]
+    );
+    return { tipo: 'entrada', asistencia: rows[0] };
   }
 
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
+  const registro = asistenciaRows[0];
 
-    // 1. Buscar miembro por DNI
-    const { rows: miembroRows } = await client.query(
-      `SELECT id, nombres, apellidos, dni, telefono, estado
-       FROM miembros WHERE dni = $1`,
-      [dni]
+  if (registro.salida === null) {
+    // Existe registro pero sin salida → SALIDA
+    const { rows } = await client.query(
+      `UPDATE asistencias
+       SET salida = NOW() AT TIME ZONE 'America/Lima',
+           duracion_minutos = ROUND(
+             EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
+           )
+       WHERE id = $1 RETURNING *`,
+      [registro.id]
     );
-
-    if (miembroRows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({
-        estado: 'denegado',
-        motivo: 'dni_no_registrado',
-        mensaje: 'DNI no encontrado. Acércate a recepción.'
-      });
-    }
-
-    const miembro = miembroRows[0];
-
-    // 2. Miembro suspendido
-    if (miembro.estado === 'suspendido') {
-      await client.query('ROLLBACK');
-      return res.json({
-        estado: 'denegado',
-        motivo: 'miembro_suspendido',
-        mensaje: 'Membresía suspendida. Acércate a recepción.',
-        miembro: formatearMiembro(miembro)
-      });
-    }
-
-    // 3. Verificar membresía activa
-    const { rows: membresiaRows } = await client.query(
-      `SELECT mem.*, p.nombre AS plan_nombre, p.duracion_dias,
-              mem.fecha_fin - CURRENT_DATE AS dias_restantes
-       FROM membresias mem
-       JOIN planes p ON mem.plan_id = p.id
-       WHERE mem.miembro_id = $1
-         AND mem.estado = 'activa'
-         AND mem.fecha_fin >= CURRENT_DATE
-       ORDER BY mem.fecha_fin DESC
-       LIMIT 1`,
-      [miembro.id]
-    );
-
-    if (membresiaRows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.json({
-        estado: 'denegado',
-        motivo: 'membresia_vencida',
-        mensaje: 'Membresía vencida. Acércate a recepción para renovar.',
-        miembro: formatearMiembro(miembro)
-      });
-    }
-
-    const membresia = membresiaRows[0];
-
-    // 4. Buscar asistencia de hoy
-    const { rows: asistenciaRows } = await client.query(
-      `SELECT * FROM asistencias WHERE miembro_id = $1 AND fecha = CURRENT_DATE`,
-      [miembro.id]
-    );
-
-    let asistencia;
-    let estadoRespuesta;
-
-    if (asistenciaRows.length === 0) {
-      const { rows } = await client.query(
-        `INSERT INTO asistencias (miembro_id, fecha, entrada, membresia_valida)
-         VALUES ($1, CURRENT_DATE, NOW() AT TIME ZONE 'America/Lima', true)
-         RETURNING *`,
-        [miembro.id]
-      );
-      asistencia = rows[0];
-      estadoRespuesta = 'entrada';
-    } else {
-      const registro = asistenciaRows[0];
-      if (registro.salida === null) {
-        const { rows } = await client.query(
-          `UPDATE asistencias
-           SET salida = NOW() AT TIME ZONE 'America/Lima',
-               duracion_minutos = ROUND(
-                 EXTRACT(EPOCH FROM (NOW() AT TIME ZONE 'America/Lima' - entrada)) / 60
-               )
-           WHERE id = $1 RETURNING *`,
-          [registro.id]
-        );
-        asistencia = rows[0];
-        estadoRespuesta = 'salida';
-      } else {
-        await client.query('ROLLBACK');
-        return res.json({
-          estado: 'ignorado',
-          mensaje: 'Visita del día ya completada',
-          miembro: formatearMiembro(miembro),
-          asistencia: registro
-        });
-      }
-    }
-
-    await client.query('COMMIT');
-
-    res.json({
-      estado: estadoRespuesta,
-      miembro: formatearMiembro(miembro),
-      membresia: {
-        plan_nombre:    membresia.plan_nombre,
-        fecha_fin:      membresia.fecha_fin,
-        dias_restantes: membresia.dias_restantes,
-        duracion_dias:  membresia.duracion_dias
-      },
-      asistencia: {
-        fecha:            asistencia.fecha,
-        entrada:          asistencia.entrada,
-        salida:           asistencia.salida,
-        duracion_minutos: asistencia.duracion_minutos
-      }
-    });
-  } catch (err) {
-    await client.query('ROLLBACK');
-    next(err);
-  } finally {
-    client.release();
+    return { tipo: 'salida', asistencia: rows[0] };
   }
+
+  // Ya tiene entrada y salida → visita completa del día
+  return { completa: true, registro };
 }
 
 // Función auxiliar: formatear datos del miembro para el kiosco
