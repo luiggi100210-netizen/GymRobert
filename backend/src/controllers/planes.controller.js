@@ -22,10 +22,19 @@ async function crearPlan(req, res, next) {
       return res.status(400).json({ error: 'Nombre, duración y precio son requeridos' });
     }
 
+    const duracion  = parseInt(duracion_dias);
+    const precioNum = parseFloat(precio);
+    if (isNaN(duracion) || duracion <= 0) {
+      return res.status(400).json({ error: 'La duración debe ser un número mayor a 0' });
+    }
+    if (isNaN(precioNum) || precioNum <= 0) {
+      return res.status(400).json({ error: 'El precio debe ser un número mayor a 0' });
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO planes (nombre, duracion_dias, precio)
        VALUES ($1, $2, $3) RETURNING *`,
-      [nombre, parseInt(duracion_dias), parseFloat(precio)]
+      [nombre, duracion, precioNum]
     );
 
     res.status(201).json(rows[0]);
@@ -39,6 +48,13 @@ async function editarPlan(req, res, next) {
   try {
     const { id } = req.params;
     const { nombre, duracion_dias, precio, activo } = req.body;
+
+    if (duracion_dias != null && (isNaN(parseInt(duracion_dias)) || parseInt(duracion_dias) <= 0)) {
+      return res.status(400).json({ error: 'La duración debe ser un número mayor a 0' });
+    }
+    if (precio != null && (isNaN(parseFloat(precio)) || parseFloat(precio) <= 0)) {
+      return res.status(400).json({ error: 'El precio debe ser un número mayor a 0' });
+    }
 
     const { rows } = await pool.query(
       `UPDATE planes
