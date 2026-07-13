@@ -155,6 +155,10 @@ async function crearMiembro(req, res, next) {
     });
   }
 
+  if (!/^\d{8}$/.test(dni)) {
+    return res.status(400).json({ error: 'DNI debe tener exactamente 8 dígitos' });
+  }
+
   if (!esFechaValida(fecha_inicio)) {
     return res.status(400).json({ error: 'fecha_inicio inválida. Formato esperado: YYYY-MM-DD' });
   }
