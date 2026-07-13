@@ -6,7 +6,7 @@ export default function Layout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
 
   return (
-    <div className="flex h-screen bg-gym-bg overflow-hidden">
+    <div className="flex h-screen app-bg overflow-hidden">
 
       {/* Overlay oscuro al abrir menú en móvil */}
       {menuAbierto && (

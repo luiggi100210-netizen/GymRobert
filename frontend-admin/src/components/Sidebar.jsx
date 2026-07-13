@@ -2,17 +2,21 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/client'
+import {
+  IconPanel, IconMiembros, IconAsistencia, IconPagos, IconReportes,
+  IconPlanes, IconMaquinas, IconTienda, IconWhatsapp,
+} from './ui/Iconos'
 
 const NAV = [
-  { to: '/',           label: 'Panel',        icon: '⊞',  exact: true },
-  { to: '/miembros',   label: 'Miembros',    icon: '👥' },
-  { to: '/asistencia', label: 'Asistencia',  icon: '📋' },
-  { to: '/pagos',      label: 'Pagos',       icon: '💰' },
-  { to: '/reportes',   label: 'Reportes',    icon: '📊' },
-  { to: '/planes',     label: 'Planes',      icon: '🏷️' },
-  { to: '/maquinas',   label: 'Máquinas',    icon: '🏋️' },
-  { to: '/tienda',     label: 'Tienda',      icon: '🛍️' },
-  { to: '/whatsapp',  label: 'WhatsApp',    icon: '💬' },
+  { to: '/',           label: 'Panel',       Icon: IconPanel, exact: true },
+  { to: '/miembros',   label: 'Miembros',    Icon: IconMiembros },
+  { to: '/asistencia', label: 'Asistencia',  Icon: IconAsistencia },
+  { to: '/pagos',      label: 'Pagos',       Icon: IconPagos },
+  { to: '/reportes',   label: 'Reportes',    Icon: IconReportes },
+  { to: '/planes',     label: 'Planes',      Icon: IconPlanes },
+  { to: '/maquinas',   label: 'Máquinas',    Icon: IconMaquinas },
+  { to: '/tienda',     label: 'Tienda',      Icon: IconTienda },
+  { to: '/whatsapp',   label: 'WhatsApp',    Icon: IconWhatsapp },
 ]
 
 function ModalCambiarPassword({ onCerrar }) {
@@ -133,7 +137,7 @@ export default function Sidebar({ onCerrar }) {
 
       {/* Navegación */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {NAV.map(({ to, label, icon, exact }) => (
+        {NAV.map(({ to, label, Icon, exact }) => (
           <NavLink
             key={to}
             to={to}
@@ -142,7 +146,9 @@ export default function Sidebar({ onCerrar }) {
               isActive ? 'nav-item-active' : 'nav-item'
             }
           >
-            <span className="text-base w-5 text-center shrink-0">{icon}</span>
+            <span className="w-5 flex items-center justify-center shrink-0">
+              <Icon />
+            </span>
             {label}
           </NavLink>
         ))}

@@ -591,7 +591,7 @@ export default function Tienda() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Tienda</h1>
+        <h1 className="page-title">Tienda</h1>
         <p className="text-sm text-gray-500 mt-0.5">Control de productos y ventas</p>
       </div>
 

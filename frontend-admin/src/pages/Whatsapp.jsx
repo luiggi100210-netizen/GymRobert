@@ -129,7 +129,7 @@ export default function Whatsapp() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">WhatsApp</h1>
+        <h1 className="page-title">WhatsApp</h1>
         <p className="text-sm text-gray-500 mt-0.5">Miembros ordenados por días restantes — el que vence antes aparece arriba</p>
       </div>
 

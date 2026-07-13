@@ -51,13 +51,13 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Cabecera */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Panel</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Resumen general del gimnasio</p>
+      <div className="anim-rise">
+        <h1 className="page-title">Panel</h1>
+        <p className="text-sm text-slate-500 mt-1.5">Resumen general del gimnasio</p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 anim-rise anim-rise-1">
         <StatCard
           titulo="Miembros activos"
           valor={datos.miembros_activos}
@@ -89,7 +89,7 @@ export default function Dashboard() {
       </div>
 
       {/* Gráfico + próximos a vencer */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 anim-rise anim-rise-2">
         {/* Gráfico de barras: últimos 7 días */}
         <div className="card lg:col-span-3">
           <h2 className="text-sm font-semibold text-slate-700 mb-4">
@@ -154,7 +154,7 @@ export default function Dashboard() {
       </div>
 
       {/* Tabla miembros recientes + próximos a vencer */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 anim-rise anim-rise-3">
         {/* Últimos miembros */}
         <div className="card lg:col-span-2">
           <div className="flex items-center justify-between mb-4">

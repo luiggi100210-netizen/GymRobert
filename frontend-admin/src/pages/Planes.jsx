@@ -74,7 +74,7 @@ export default function Planes() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Planes</h1>
+          <h1 className="page-title">Planes</h1>
           <p className="text-sm text-gray-500 mt-0.5">Tipos de membresía disponibles</p>
         </div>
         <button onClick={abrirNuevo} className="btn-primary text-sm">
