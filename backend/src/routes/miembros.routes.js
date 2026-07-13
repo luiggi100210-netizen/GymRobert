@@ -6,6 +6,7 @@ const {
   obtenerMiembro,
   crearMiembro,
   editarMiembro,
+  eliminarMiembro,
   buscarPorDni,
   buscarReniec,
   listarMedidas,
@@ -24,6 +25,7 @@ router.get('/',         listarMiembros);    // GET /api/miembros
 router.get('/:id',      obtenerMiembro);   // GET /api/miembros/:id
 router.post('/',        crearMiembro);     // POST /api/miembros
 router.put('/:id',      editarMiembro);    // PUT /api/miembros/:id
+router.delete('/:id',   eliminarMiembro);  // DELETE /api/miembros/:id (requiere contraseña)
 router.get('/:id/medidas',  listarMedidas);   // GET  /api/miembros/:id/medidas
 router.post('/:id/medidas', registrarMedida); // POST /api/miembros/:id/medidas
 

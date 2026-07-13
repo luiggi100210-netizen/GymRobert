@@ -256,6 +256,69 @@ function ModalEliminarPago({ pago, onCerrar, onEliminado }) {
   )
 }
 
+// Modal para eliminar al miembro completo — requiere contraseña y confirmación
+function ModalEliminarMiembro({ miembro, onCerrar }) {
+  const navigate = useNavigate()
+  const [password, setPassword] = useState('')
+  const [eliminando, setEliminando] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleEliminar = async () => {
+    if (!password) { setError('Ingresa tu contraseña'); return }
+    setEliminando(true)
+    setError('')
+    try {
+      await api.delete(`/miembros/${miembro.id}`, { data: { password } })
+      navigate('/miembros')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al eliminar')
+      setEliminando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="card w-full max-w-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-gray-900">Eliminar miembro</h2>
+          <button onClick={onCerrar} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 text-xs text-red-700 space-y-1">
+          <p><strong>{miembro.nombres} {miembro.apellidos}</strong> (DNI: {miembro.dni})</p>
+          <p>Se borrará <strong>todo su historial</strong>: membresías, pagos, asistencias y medidas.</p>
+          <p className="font-bold">Esta acción no se puede deshacer.</p>
+          <p className="text-red-500">💡 Si solo quieres bloquear su acceso, usa "Suspender" — conserva el historial.</p>
+        </div>
+        <div>
+          <label className="label">Contraseña de administrador</label>
+          <input
+            type="password"
+            className="input"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleEliminar() }}
+            autoFocus
+          />
+        </div>
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+        )}
+        <div className="flex gap-3">
+          <button onClick={onCerrar} className="btn-ghost flex-1">Cancelar</button>
+          <button
+            onClick={handleEliminar}
+            disabled={eliminando || !password}
+            className="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {eliminando ? 'Eliminando...' : 'Eliminar definitivamente'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MiembroDetalle() {
   const { id }      = useParams()
   const navigate    = useNavigate()
@@ -266,6 +329,7 @@ export default function MiembroDetalle() {
   const [renovado, setRenovado]                   = useState(false)
   const [cambiandoEstado, setCambiandoEstado]     = useState(false)
   const [modalEliminarPago, setModalEliminarPago] = useState(null) // pago a eliminar
+  const [modalEliminarMiembro, setModalEliminarMiembro] = useState(false)
 
   const cargar = () => {
     setCargando(true)
@@ -381,6 +445,13 @@ export default function MiembroDetalle() {
             className="btn-ghost text-sm"
           >
             Editar datos
+          </button>
+          <button
+            onClick={() => setModalEliminarMiembro(true)}
+            title="Eliminar miembro y todo su historial"
+            className="text-sm px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300 font-medium transition-colors"
+          >
+            🗑 Eliminar
           </button>
           <button
             onClick={() => setModalRenovar(true)}
@@ -563,6 +634,14 @@ export default function MiembroDetalle() {
           pago={modalEliminarPago}
           onCerrar={() => setModalEliminarPago(null)}
           onEliminado={() => { setModalEliminarPago(null); cargar() }}
+        />
+      )}
+
+      {/* Modal eliminar miembro */}
+      {modalEliminarMiembro && (
+        <ModalEliminarMiembro
+          miembro={miembro}
+          onCerrar={() => setModalEliminarMiembro(false)}
         />
       )}
     </div>

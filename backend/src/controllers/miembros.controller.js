@@ -1,5 +1,6 @@
 // Controlador de miembros del gimnasio
-const pool = require('../config/database');
+const pool   = require('../config/database');
+const bcrypt = require('bcryptjs');
 const { esFechaValida } = require('../utils/validaciones');
 
 // Valida una medida corporal opcional; devuelve mensaje de error o null
@@ -337,6 +338,44 @@ async function buscarPorDni(req, res, next) {
   }
 }
 
+// DELETE /api/miembros/:id
+// Elimina al miembro y TODO su historial (membresías, pagos, asistencias,
+// medidas — por cascada). Acción irreversible: requiere contraseña del admin.
+async function eliminarMiembro(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Se requiere la contraseña para eliminar' });
+    }
+
+    const { rows: adminRows } = await pool.query(
+      'SELECT password FROM admin WHERE id = $1',
+      [req.admin.id]
+    );
+    if (adminRows.length === 0) {
+      return res.status(401).json({ error: 'Administrador no encontrado' });
+    }
+    const valido = await bcrypt.compare(password, adminRows[0].password);
+    if (!valido) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    const { rows } = await pool.query(
+      'DELETE FROM miembros WHERE id = $1 RETURNING id, nombres, apellidos',
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    res.json({ mensaje: `Miembro ${rows[0].nombres} ${rows[0].apellidos} eliminado junto con todo su historial` });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // GET /api/miembros/:id/medidas
 // Historial de medidas del miembro (ascendente para graficar progreso)
 async function listarMedidas(req, res, next) {
@@ -420,7 +459,7 @@ async function miembrosFrecuentes(req, res, next) {
 }
 
 module.exports = {
-  listarMiembros, obtenerMiembro, crearMiembro, editarMiembro,
+  listarMiembros, obtenerMiembro, crearMiembro, editarMiembro, eliminarMiembro,
   buscarPorDni, buscarReniec,
   listarMedidas, registrarMedida, miembrosFrecuentes,
 };
