@@ -23,8 +23,14 @@ function etiquetaDias(dias) {
   return { texto: `${dias} días`, color: 'text-gray-500 font-medium' }
 }
 
+// Primer nombre en formato "Luiggi" (en BD se guarda "LUIGGI APARICIO")
+function nombrePila(nombres) {
+  const primero = (nombres || '').trim().split(' ')[0].toLowerCase()
+  return primero.charAt(0).toUpperCase() + primero.slice(1)
+}
+
 function mensajeWsp(miembro, esVencido) {
-  const nombre = miembro.nombres.split(' ')[0]
+  const nombre = nombrePila(miembro.nombres)
   const f = fecha(miembro.fecha_fin)
   const plan = miembro.plan_nombre || 'tu plan'
   const dias = miembro.dias_restantes
@@ -65,7 +71,7 @@ _Robert Gym — Arequipa_ 🏆`
 }
 
 function mensajeMotivacion(miembro) {
-  const nombre = miembro.nombres.split(' ')[0]
+  const nombre = nombrePila(miembro.nombres)
   const veces  = miembro.asistencias_mes
 
   return `¡Hola ${nombre}! 💪
