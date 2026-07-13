@@ -19,7 +19,9 @@
       "src/middleware/auth.js",
       "src/middleware/errorHandler.js",
       "src/controllers/asistencia.controller.js",
-      "src/controllers/pagos.controller.js"
+      "src/controllers/pagos.controller.js",
+      "src/controllers/auth.controller.js",
+      "src/controllers/reportes.controller.js"
     ],
     "coverageThreshold": {
       "global": {
