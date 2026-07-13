@@ -19,25 +19,45 @@ export default function Pagos() {
   const [mes, setMes]     = useState(hoy.getMonth() + 1)
   const [anio, setAnio]   = useState(hoy.getFullYear())
   const [pagos, setPagos] = useState([])
+  const [page, setPage]   = useState(1)
+  const [total, setTotal] = useState(0)
+  const [limit, setLimit] = useState(100)
+  const [resumen, setResumen] = useState({ total_monto: 0, por_metodo: [] })
   const [cargando, setCargando] = useState(true)
+
+  // Al cambiar de período se vuelve a la primera página
+  useEffect(() => { setPage(1) }, [mes, anio])
 
   useEffect(() => {
     setCargando(true)
-    api.get('/pagos', { params: { mes, anio } })
-      .then(({ data }) => setPagos(data))
+    api.get('/pagos', { params: { mes, anio, page } })
+      .then(({ data }) => {
+        setPagos(data.data)
+        setTotal(data.total)
+        setLimit(data.limit)
+        setResumen(data.resumen)
+      })
       .finally(() => setCargando(false))
-  }, [mes, anio])
+  }, [mes, anio, page])
 
-  // Calcular totales
-  const totalMes  = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0)
-  const porMetodo = pagos.reduce((acc, p) => {
-    acc[p.metodo_pago] = (acc[p.metodo_pago] || 0) + parseFloat(p.monto)
-    return acc
-  }, {})
+  const totalPaginas = Math.max(1, Math.ceil(total / limit))
 
-  const exportarCSV = () => {
+  const exportarCSV = async () => {
+    // Recorre todas las páginas del período para exportar el mes completo
+    let filasPeriodo = []
+    let paginaCsv = 1
+    let totalRegistros = 0
+    do {
+      const { data } = await api.get('/pagos', {
+        params: { mes, anio, page: paginaCsv, limit: 500 },
+      })
+      filasPeriodo = filasPeriodo.concat(data.data)
+      totalRegistros = data.total
+      paginaCsv++
+    } while (filasPeriodo.length < totalRegistros)
+
     const cabecera = ['Miembro', 'DNI', 'Plan', 'Monto', 'Método', 'Fecha', 'Comprobante']
-    const filas = pagos.map((p) => [
+    const filas = filasPeriodo.map((p) => [
       `${p.nombres} ${p.apellidos}`,
       p.dni,
       p.plan_nombre,
@@ -95,22 +115,20 @@ export default function Pagos() {
         </div>
       </div>
 
-      {/* Cards resumen */}
+      {/* Cards resumen — datos agregados de todo el período (no solo la página visible) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total cobrado</p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">{sol(totalMes)}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{pagos.length} pagos</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-1">{sol(resumen.total_monto)}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{total} pagos</p>
         </div>
-        {Object.entries(porMetodo).map(([metodo, monto]) => (
-          <div key={metodo} className="card">
+        {resumen.por_metodo.map((m) => (
+          <div key={m.metodo_pago} className="card">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide flex items-center gap-1">
-              <span>{ICONOS_PAGO[metodo] || '💳'}</span> {metodo}
+              <span>{ICONOS_PAGO[m.metodo_pago] || '💳'}</span> {m.metodo_pago}
             </p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{sol(monto)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {pagos.filter((p) => p.metodo_pago === metodo).length} pagos
-            </p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{sol(m.monto)}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{m.pagos} pagos</p>
           </div>
         ))}
       </div>
@@ -162,6 +180,34 @@ export default function Pagos() {
           </div>
         )}
       </div>
+
+      {/* Paginación */}
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            Mostrando {pagos.length} de {total} pagos
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || cargando}
+              className="btn-ghost text-sm disabled:opacity-40"
+            >
+              ← Anterior
+            </button>
+            <span className="text-sm text-gray-600">
+              Página {page} de {totalPaginas}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
+              disabled={page >= totalPaginas || cargando}
+              className="btn-ghost text-sm disabled:opacity-40"
+            >
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

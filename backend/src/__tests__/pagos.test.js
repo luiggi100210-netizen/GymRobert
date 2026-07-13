@@ -79,35 +79,64 @@ describe('GET /api/pagos', () => {
     expect(res.status).toBe(401)
   })
 
-  it('retorna lista de pagos con token válido', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [{ id: 'p1', monto: '80.00' }] })
+  it('retorna pagos paginados con resumen del período completo', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'p1', monto: '80.00' }] }) // página
+      .mockResolvedValueOnce({ rows: [
+        { metodo_pago: 'efectivo', pagos: '3', monto: '240.00' },
+        { metodo_pago: 'yape',     pagos: '1', monto: '80.00' },
+      ] }) // resumen
     const res = await request(app)
       .get('/api/pagos')
       .set('Authorization', authHeader)
     expect(res.status).toBe(200)
-    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.data).toHaveLength(1)
+    expect(res.body.total).toBe(4)
+    expect(res.body.page).toBe(1)
+    expect(res.body.limit).toBe(100)
+    expect(res.body.resumen.total_monto).toBe(320)
+    expect(res.body.resumen.por_metodo).toHaveLength(2)
   })
 
-  it('filtra por mes y año cuando ambos vienen en el query', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [] })
+  it('filtra por mes y año, y pagina con LIMIT/OFFSET', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
     const res = await request(app)
-      .get('/api/pagos?mes=5&anio=2026')
+      .get('/api/pagos?mes=5&anio=2026&page=2&limit=50')
       .set('Authorization', authHeader)
     expect(res.status).toBe(200)
-    const [sql, params] = pool.query.mock.calls[0]
-    expect(sql).toMatch(/EXTRACT\(MONTH/)
-    expect(params).toEqual([5, 2026])
+    const [sqlPagina, paramsPagina] = pool.query.mock.calls[0]
+    expect(sqlPagina).toMatch(/EXTRACT\(MONTH/)
+    expect(sqlPagina).toMatch(/LIMIT \$3 OFFSET \$4/)
+    expect(paramsPagina).toEqual([5, 2026, 50, 50])
+    const [sqlResumen, paramsResumen] = pool.query.mock.calls[1]
+    expect(sqlResumen).toMatch(/GROUP BY metodo_pago/)
+    expect(paramsResumen).toEqual([5, 2026])
   })
 
   it('filtra solo por año cuando no viene mes', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [] })
+    pool.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
     const res = await request(app)
       .get('/api/pagos?anio=2026')
       .set('Authorization', authHeader)
     expect(res.status).toBe(200)
     const [sql, params] = pool.query.mock.calls[0]
     expect(sql).toMatch(/EXTRACT\(YEAR/)
-    expect(params).toEqual([2026])
+    expect(params).toEqual([2026, 100, 0])
+  })
+
+  it('limita el tamaño de página al máximo de 500', async () => {
+    pool.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+    const res = await request(app)
+      .get('/api/pagos?limit=9999')
+      .set('Authorization', authHeader)
+    expect(res.status).toBe(200)
+    expect(res.body.limit).toBe(500)
   })
 })
 

@@ -3,40 +3,67 @@ const pool   = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 // GET /api/pagos
-// Historial de pagos con filtro opcional por mes/año
+// Historial de pagos paginado con filtro opcional por mes/año.
+// Devuelve { data, total, page, limit, resumen } — el resumen se calcula
+// sobre TODO el período (no solo la página) para las tarjetas del panel.
 async function listarPagos(req, res, next) {
   try {
     const { mes, anio } = req.query;
+    const page   = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit  = Math.min(500, Math.max(1, parseInt(req.query.limit) || 100));
+    const offset = (page - 1) * limit;
 
-    let query = `
-      SELECT
-        pa.*,
-        m.nombres, m.apellidos, m.dni,
-        p.nombre AS plan_nombre,
-        mem.fecha_inicio, mem.fecha_fin
-      FROM pagos pa
-      JOIN membresias mem ON pa.membresia_id = mem.id
-      JOIN miembros   m   ON mem.miembro_id  = m.id
-      JOIN planes     p   ON mem.plan_id     = p.id
-      WHERE 1=1
-    `;
-
-    const params = [];
+    let where = '';
+    const filtros = [];
     let idx = 1;
 
     if (mes && anio) {
-      query += ` AND EXTRACT(MONTH FROM pa.fecha_pago) = $${idx++}
-                 AND EXTRACT(YEAR  FROM pa.fecha_pago) = $${idx++}`;
-      params.push(parseInt(mes), parseInt(anio));
+      where = ` AND EXTRACT(MONTH FROM pa.fecha_pago) = $${idx++}
+                AND EXTRACT(YEAR  FROM pa.fecha_pago) = $${idx++}`;
+      filtros.push(parseInt(mes), parseInt(anio));
     } else if (anio) {
-      query += ` AND EXTRACT(YEAR FROM pa.fecha_pago) = $${idx++}`;
-      params.push(parseInt(anio));
+      where = ` AND EXTRACT(YEAR FROM pa.fecha_pago) = $${idx++}`;
+      filtros.push(parseInt(anio));
     }
 
-    query += ' ORDER BY pa.fecha_pago DESC';
+    const [{ rows: data }, { rows: porMetodo }] = await Promise.all([
+      pool.query(
+        `SELECT
+          pa.*,
+          m.nombres, m.apellidos, m.dni,
+          p.nombre AS plan_nombre,
+          mem.fecha_inicio, mem.fecha_fin
+         FROM pagos pa
+         JOIN membresias mem ON pa.membresia_id = mem.id
+         JOIN miembros   m   ON mem.miembro_id  = m.id
+         JOIN planes     p   ON mem.plan_id     = p.id
+         WHERE 1=1 ${where}
+         ORDER BY pa.fecha_pago DESC
+         LIMIT $${idx} OFFSET $${idx + 1}`,
+        [...filtros, limit, offset]
+      ),
+      pool.query(
+        `SELECT
+          metodo_pago,
+          COUNT(*)                 AS pagos,
+          COALESCE(SUM(monto), 0)  AS monto
+         FROM pagos pa
+         WHERE 1=1 ${where}
+         GROUP BY metodo_pago`,
+        filtros
+      ),
+    ]);
 
-    const { rows } = await pool.query(query, params);
-    res.json(rows);
+    const total       = porMetodo.reduce((acc, r) => acc + parseInt(r.pagos), 0);
+    const totalMonto  = porMetodo.reduce((acc, r) => acc + parseFloat(r.monto), 0);
+
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      resumen: { total_monto: totalMonto, por_metodo: porMetodo },
+    });
   } catch (err) {
     next(err);
   }
