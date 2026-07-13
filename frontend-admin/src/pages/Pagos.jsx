@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../api/client'
 import Spinner from '../components/ui/Spinner'
+import EmptyState from '../components/ui/EmptyState'
 
 const sol = (n) => `S/ ${parseFloat(n || 0).toFixed(2)}`
 
@@ -136,7 +137,11 @@ export default function Pagos() {
       {/* Tabla */}
       <div className="card p-0 overflow-hidden">
         {cargando ? <Spinner /> : pagos.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">Sin pagos en este período</p>
+          <EmptyState
+            icono="💳"
+            titulo="Sin pagos en este período"
+            detalle={`No se registraron cobros en ${MESES[mes - 1]} ${anio}. Prueba con otro mes.`}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

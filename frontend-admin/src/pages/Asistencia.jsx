@@ -7,6 +7,7 @@ import {
 import api from '../api/client'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
+import EmptyState from '../components/ui/EmptyState'
 
 const PESTANAS = ['Hoy', 'Historial', 'Reporte mensual']
 
@@ -291,7 +292,11 @@ function TabHoy() {
 
       <div className="card p-0 overflow-hidden">
         {cargando ? <Spinner /> : lista.length === 0 ? (
-          <p className="text-center text-gray-600 py-12">Sin asistencias registradas hoy</p>
+          <EmptyState
+            icono="🕐"
+            titulo="Sin asistencias registradas hoy"
+            detalle="Las entradas del kiosco y los registros manuales aparecerán aquí."
+          />
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -385,7 +390,11 @@ function TabHistorial() {
 
       <div className="card p-0 overflow-hidden">
         {cargando ? <Spinner /> : lista.length === 0 ? (
-          <p className="text-center text-gray-600 py-12">Sin registros para esta fecha</p>
+          <EmptyState
+            icono="📅"
+            titulo="Sin registros para esta fecha"
+            detalle="Prueba con otro día usando los accesos rápidos de arriba."
+          />
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full text-sm">

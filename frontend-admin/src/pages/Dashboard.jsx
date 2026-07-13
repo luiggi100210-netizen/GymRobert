@@ -7,7 +7,8 @@ import api from '../api/client'
 import { linkWhatsapp } from '../utils/whatsapp'
 import StatCard from '../components/ui/StatCard'
 import Badge from '../components/ui/Badge'
-import Spinner from '../components/ui/Spinner'
+import EmptyState from '../components/ui/EmptyState'
+import Skeleton, { SkeletonFilas } from '../components/ui/Skeleton'
 
 // Formatea monto en soles peruanos
 const sol = (n) => `S/ ${parseFloat(n || 0).toFixed(2)}`
@@ -24,15 +25,28 @@ export default function Dashboard() {
   const [cargando, setCargando] = useState(true)
   const [error, setError]     = useState('')
 
-  useEffect(() => {
+  const cargarDashboard = () => {
+    setCargando(true)
+    setError('')
     api.get('/reportes/dashboard')
       .then(({ data }) => setDatos(data))
-      .catch(() => setError('Error al cargar el dashboard'))
+      .catch(() => setError('No se pudo cargar el panel. Revisa tu conexión.'))
       .finally(() => setCargando(false))
-  }, [])
+  }
 
-  if (cargando) return <Spinner />
-  if (error)    return <p className="text-red-500 text-center py-12">{error}</p>
+  useEffect(() => { cargarDashboard() }, [])
+
+  if (cargando) return <DashboardSkeleton />
+  if (error) {
+    return (
+      <EmptyState
+        icono="⚠️"
+        titulo={error}
+        detalle="El servidor no respondió a tiempo."
+        accion={{ texto: 'Reintentar', onClick: cargarDashboard }}
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -81,6 +95,14 @@ export default function Dashboard() {
           <h2 className="text-sm font-semibold text-slate-700 mb-4">
             Asistencias — últimos 7 días
           </h2>
+          {datos.asistencias_7_dias.length === 0 ? (
+            <EmptyState
+              compacto
+              icono="📊"
+              titulo="Aún no hay asistencias esta semana"
+              detalle="Cuando los miembros marquen entrada en el kiosco, verás el movimiento aquí."
+            />
+          ) : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={datos.asistencias_7_dias} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -104,6 +126,7 @@ export default function Dashboard() {
               <Bar dataKey="total" fill="#c53030" radius={[4, 4, 0, 0]} name="Asistencias" />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
 
         {/* Proyección */}
@@ -151,6 +174,18 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
+                {datos.ultimos_miembros.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>
+                      <EmptyState
+                        compacto
+                        icono="👥"
+                        titulo="Todavía no hay miembros registrados"
+                        accion={{ texto: '+ Registrar primer miembro', to: '/miembros/nuevo' }}
+                      />
+                    </td>
+                  </tr>
+                )}
                 {datos.ultimos_miembros.map((m) => (
                   <tr key={m.id} className="table-row">
                     <td className="py-2.5 pr-4">
@@ -182,16 +217,26 @@ export default function Dashboard() {
 
 function VencenProximo() {
   const [lista, setLista] = useState([])
+  const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    api.get('/membresias/vencen-pronto').then(({ data }) => setLista(data))
+    api.get('/membresias/vencen-pronto')
+      .then(({ data }) => setLista(data))
+      .finally(() => setCargando(false))
   }, [])
 
   return (
     <div className="card">
       <h2 className="text-sm font-semibold text-slate-700 mb-4">Vencen en 7 días</h2>
-      {lista.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-4">Ninguno próximo a vencer</p>
+      {cargando ? (
+        <SkeletonFilas filas={3} />
+      ) : lista.length === 0 ? (
+        <EmptyState
+          compacto
+          icono="✅"
+          titulo="Ninguno próximo a vencer"
+          detalle="Todas las membresías están al día."
+        />
       ) : (
         <ul className="space-y-2">
           {lista.slice(0, 7).map((m) => {
@@ -227,6 +272,31 @@ function VencenProximo() {
           })}
         </ul>
       )}
+    </div>
+  )
+}
+
+// Skeleton que imita el layout real del panel mientras cargan los datos
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-4 w-60 mt-2" />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <Skeleton className="h-64 lg:col-span-3" />
+        <Skeleton className="h-64 lg:col-span-2" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Skeleton className="h-56 lg:col-span-2" />
+        <Skeleton className="h-56" />
+      </div>
     </div>
   )
 }
